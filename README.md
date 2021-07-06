@@ -1,5 +1,24 @@
 # InternNote
-实习笔记
+2021的实习笔记
+
+联系方式：
+
+- 常用：
+  - 798034039@qq.com
+- 暂用：
+  - siyuexi@hust.edu.cn
+  - gestaltxu@tencent.com
+  - xujunjielong@bytedance.com
+
 ## Tencent
+
+腾讯互娱——游戏知己项目组
+
 ## ByteDance
+
+字节抖音——抖音直播项目组
+
 ## CtiyU
+
+AAAI——迁移学习/元学习
+

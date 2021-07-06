@@ -1,8 +1,8 @@
 # Tencent_DevNote
 
-2021.06.25-2021.08.31
+2021.06.25-Unknown
 
-Shenzhen,Guangdong,China
+Shenzhen,China
 
 gestaltxu@tencent.com
 
@@ -67,6 +67,8 @@ gestaltxu@tencent.com
 
 
 ### Service
+
+Service可以没有界面，从而作为后台进程存在。
 
 
 
@@ -400,6 +402,8 @@ VLink是一个sdk，这里的app只是拿来做测试用的demo，sdk源码都�
 ![vlink5](res/vlink5.png)
 
 ### SCLog
+
+SCLog是一个轻量级的日志库
 
 
 
