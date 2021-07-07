@@ -385,6 +385,8 @@ public class MainActivity extends Activity{
 
 ### VLink
 
+#### 结构
+
 VLink是一个sdk，这里的app只是拿来做测试用的demo，sdk源码都在vlink-mobile模块内。最终该项目的sdk模块部分会打包为arr
 
 ![vlink1](res/vlink1.png)需要给不同的游戏对接，因此提前写好对应不同游戏的sdk版本(pubg,sdsj,tymy)。这需要修改vlink-mobile模块的build.gradle，设置productFlavors的buildConfigField参数来控制对应不同手游的sdk版本。
@@ -403,7 +405,25 @@ VLink是一个sdk，这里的app只是拿来做测试用的demo，sdk源码都�
 
 ### SCLog
 
-SCLog是一个轻量级的日志库
+#### 设计
+
+一个好的日志系统满足几个条件：
+
+- 轻量：依赖项少，体量小，打包整洁，自动清理日志
+
+- 高效：响应速度快，日志保存及时，且占据资源少
+- 安全：多线程安全
+
+#### 架构
+
+SCLog原先使用java实现
+
+
+
+#### 待办问题
+
+1. jstring
+2. map到普通内存区域和ashmem哪个性能会好点
 
 
 
@@ -419,4 +439,8 @@ SCLog是一个轻量级的日志库
 - C++ Google规范 https://google.github.io/styleguide/cppguide.html
 
 - Git 文档全书 https://git-scm.com/book/zh/v2
+
+- Tencent代码规范 https://techmap.woa.com/oteam/8541
+
+- PlantUML类图绘制 https://blog.csdn.net/junhuahouse/article/details/80767632
 
