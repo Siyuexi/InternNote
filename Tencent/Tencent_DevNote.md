@@ -405,6 +405,342 @@ VLink是一个sdk，这里的app只是拿来做测试用的demo，sdk源码都�
 
 ### SCLog
 
+#### JNI基础
+
+##### JNI项目结构：
+
+![SCLog1](res/SCLog1.png)
+
+AS的JNI项目会增加cpp目录。该目录包含native的cpp库以及CMakeList。java类内可以调用cpp库的方法。
+
+AS新建空JNI项目，main目录下的java和cpp：
+
+MainActivity.java:
+
+```java
+public class MainActivity extends AppCompatActivity {
+
+    // 加载的library名称，注意：不是C++文件的名称
+    static {
+        System.loadLibrary("native-lib");
+    }
+    private ActivityMainBinding binding;
+    /**
+     * java中定义方法的名称，会根据包名、类名、参数、返回值类型寻找对应的C++方法
+     */
+    public native String stringFromJNI();
+}
+```
+
+native-lib.cpp:
+
+```C++
+//对应于java中的stringFromJNI方法
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_example_jniapplication_MainActivity_stringFromJNI(
+        JNIEnv* env,
+        jobject /* this */) {
+    std::string hello = "Hello from C++";
+  	//返回值转义为const char*
+    return env->NewStringUTF(hello.c_str());
+}
+```
+
+细节：
+
+- Java部分
+  Java部分主要做了两件事情：
+
+  1. 加载动态库
+
+     因为动态库只需要加载一次，所以一般我们会在类的静态代码块中进行加载，这样还有个好处就是早出错，早发现
+
+     ```java
+     static {
+         System.loadLibrary("native-lib");
+     }
+     ```
+
+  2. native函数声明
+
+     以下声明表示这个函数是native函数，什么参数也不传，回传一个String
+
+     ```java
+     public native String stringFromJNI();
+     ```
+
+- native部分
+  native函数的实现：
+  函数标识：`extern "C" JNIEXPORT`
+  回传值类型：`jstring`
+  参数类型：自动添加了`JNIEnv*`和`jobject`
+
+  ```cpp
+  extern "C" JNIEXPORT jstring JNICALL Java_com_wsy_jnidemo_MainActivity_stringFromJNI(
+      JNIEnv *env,
+      jobject /* this */){
+      std::string hello = "Hello from C++";
+      return env->NewStringUTF(hello.c_str());
+  }
+  ```
+
+`extern "C"`：声明以下编译方式为C语言编译而非C++
+
+`JNIEXPORT`：宏，声明了函数可见性为default
+
+`JNICALL`：宏，空的(?)
+
+- CMakeLists部分
+
+  ```cmake
+  # 声明最低的cmake版本
+  cmake_minimum_required(VERSION 3.4.1)
+  # 添加一个名称叫native-lib的动态库，该库的源文件为src/main/native-lib.cpp
+  add_library( native-lib # 库的名称
+               SHARED # SHARED:动态库、STATIC:静态库
+               src/main/native-lib.cpp # 源文件，可以是多个
+               )
+               
+  # 寻找系统中的log库，保存在log-lib变量中
+  find_library( log-lib 
+                log )
+                
+  # native-lib这个库会去依赖log-lib这个库
+  target_link_libraries( native-lib
+                         ${log-lib} )
+  ```
+
+
+
+##### JNI类型转换
+
+oracle给出了native和java的基本类型转换表：
+
+| Java Type | Native Type | Description      |
+| --------- | ----------- | ---------------- |
+| boolean   | jboolean    | unsigned 8 bits  |
+| byte      | jbyte       | signed 8 bits    |
+| char      | jchar       | unsigned 16 bits |
+| short     | jshort      | signed 16 bits   |
+| int       | jint        | signed 32 bits   |
+| long      | jlong       | signed 64 bits   |
+| float     | jfloat      | 32 bits          |
+| double    | jdouble     | 64 bits          |
+| void      | void        | N/A              |
+
+
+
+##### JNI函数注册
+
+JNI函数的注册一般分为两种：**静态注册和动态注册**。
+
+- 静态注册通过固定的命名规则映射Java和native函数，如：
+
+  1. 在java中定义好将要使用的native方法：
+
+     ```java
+     public native void testCallJava(MainActivity activity)
+     ```
+
+  2. 在cpp中定义对应的native方法：
+
+     ```cpp
+     xtern "C" JNIEXPORT void JNICALL 
+     Java_com_example_jniapplication_MainActivity_staticRegister(
+             JNIEnv *env,
+            jobject /* this */, jobject activity)
+     ```
+
+- 动态注册通过重写`JNI_OnLoad`函数，用`jint RegisterNatives(jclass clazz, const JNINativeMethod* methods, jint nMethods)`函数将Java中定义的native函数和C/C++中定义的函数进行映射，如：
+
+  1. 在java中定义好将要使用的native方法：
+
+     ```java
+     public native String dynamicRegister();
+     ```
+
+  2. 在cpp中定义对应的native方法：
+
+     ```cpp
+     jstring dynamicRegister(JNIEnv *jniEnv, jobject obj) {
+         return jniEnv->NewStringUTF("dynamicRegister");
+     }
+     ```
+
+  3. 在cpp中重写`JNI_OnLoad`方法：
+
+     ```cpp
+     int JNI_OnLoad(JavaVM *javaVM, void *reserved) {
+            JNIEnv *jniEnv;
+       if (JNI_OK == javaVM->GetEnv((void **) (&jniEnv), JNI_VERSION_1_4)) {
+           // 动态注册的Java函数所在的类
+           jclass registerClass = jniEnv->FindClass("com/wsy/jnidemo/MainActivity");
+           JNINativeMethod jniNativeMethods[] = {
+                   //3个参数分别为 Java函数的名称，Java函数的签名（不带函数名），本地函数指针
+                    {"dynamicRegister", "()Ljava/lang/String;", (void *) (dynamicRegister)}
+           };
+            if (jniEnv->RegisterNatives(registerClass, jniNativeMethods,
+                                        sizeof(jniNativeMethods) / sizeof((jniNativeMethods)[0])) < 0) {
+                return JNI_ERR;
+            }
+        }
+        return JNI_VERSION_1_4;
+     }
+     ```
+
+     
+
+##### java签名
+
+java和native交互时的唯一性如何确定？
+
+- native：通过函数名、函数参数、返回类型确保唯一性
+- java：通过**签名**确保唯一性：
+
+维基百科给出如下签名解释：
+
+> 在计算机科学中，类型签名或类型注释定义了函数，子程序或方法的输入和输出。类型签名包括参数的数量，参数的类型以及函数包含的参数的顺序。在重载解析期间通常使用类型签名来选择在许多重载函数中正确的那一项。
+
+> 在Java虚拟机中，内部类型签名用于标识虚拟机代码级别的方法和类。
+> 示例： 方法`String String.substring(int，int)`在字节码中表示为`Ljava/lang/String.substring(II)Ljava/lang/String;`。
+> 方法`main()`的签名如下所示：
+> `public static void main(String[] args)`
+> 在反汇编的字节码中，它采用`Lsome/package/Main/main:([Ljava/lang/String;)V`的形式。
+> `main()`方法的方法签名包含三个修饰符：
+> `public`表示main()方法可以被任何对象调用。
+> `static`表示main()方法是一个类方法。
+> `void`表示main()方法没有返回值。 
+
+简而言之，签名是把方法的函数名、参数类型、返回值类型和成员的变量名、数据类型按一定映射关系编码成一个串。
+
+oracle给出如下映射表：
+
+| Type Signature            | Java Type             |
+| ------------------------- | --------------------- |
+| Z                         | boolean               |
+| B                         | byte                  |
+| C                         | char                  |
+| S                         | short                 |
+| I                         | int                   |
+| J                         | long                  |
+| F                         | float                 |
+| D                         | double                |
+| L fully-qualified-class ; | fully-qualified-class |
+| [ type                    | type[]                |
+| ( arg-types ) ret-type    | method type           |
+
+> For example, the Java method: `long f (int n, String s, int[] arr);` 
+>
+> has the following type signature: `(ILjava/lang/String;[I)J`
+
+
+
+#### 调研
+
+##### jstring
+
+const char* 转 jstring的函数：`env->NewStringUTF()`
+
+- 声明：jni.h
+
+```C++
+	jstring NewStringUTF(const char* byte)
+```
+
+- 实现：jni_internal.cc
+
+```cpp
+  static jstring NewStringUTF(JNIEnv* env, const char* utf) {
+    if (utf == nullptr) {
+      return nullptr;
+    }
+    ScopedObjectAccess soa(env);
+    ObjPtr<mirror::String> result = mirror::String::AllocFromModifiedUtf8(soa.Self(), utf);
+    return soa.AddLocalReference<jstring>(result);
+  }
+```
+
+作用是根据传入的const char*对象，创建java.lang.String对象
+
+
+
+##### const char*：
+
+- const char* ptr：*ptr是常量（ptr指向的值不能改变）
+
+```C++
+char str[] = "hello";
+char alt[] = "world";
+const char* ptr = str;//const修饰char*，即指针指向的值是常量
+*ptr = 'a';//报错，无法更改指向地址的值
+ptr = alt;//可以，直接更改指针本身
+```
+
+- char const *ptr：同上
+- char *const ptr：ptr是常量（ptr不能改变但ptr指向的值可以变）
+
+```C++
+char str[] = "hello";
+char alt[] = "world";
+char* const ptr = str;//const修饰ptr，即指针是常量
+*ptr = 'a';//可以
+ptr = alt;//报错；不能更改指针
+```
+
+- 注意：
+  - 字符数组可以用常字符串**初始化**
+  - cout<<str;//输出流直接输出字符串，而不是输出首地址
+
+
+
+##### jstring与const char*相互转换
+
+- const char* 转换为 jstring：
+
+``` java
+//将const char*类型转换成jstring类型
+jstring CStr2Jstring(JNIEnv* env, const char* pat){
+    //定义java String类 strClass
+    jclass strClass = (env)->FindClass("java/lang/String");
+    //获取java String类方法String(byte[],String)的构造器,用于将本地byte[]数组转换为一个新String
+    jmethodID ctorID = (env)->GetMethodID(strClass, "<init>", "([BLjava/lang/String;)V");
+    //建立byte数组
+    jbyteArray bytes = (env)->NewByteArray((jsize)strlen(pat));
+    //将char* 转换为byte数组
+    (env)->SetByteArrayRegion(bytes, 0, (jsize)strlen(pat), (jbyte*)pat);
+    //设置String, 保存语言类型,用于byte数组转换至String时的参数
+    jstring encoding = (env)->NewStringUTF("GB2312"); 
+    //将byte数组转换为java String,并输出
+    return (jstring)(env)->NewObject(strClass, ctorID, bytes, encoding);
+}
+```
+
+- jstring 转换为 char*：
+
+```java
+//将jstring类型转换成char*类型
+char* Jstring2CStr(JNIEnv* env, jstring jstr{  
+    char* rtn = NULL;
+    jclass clsstring = env->FindClass("java/lang/String");   
+    jstring strencode = env->NewStringUTF("GB2312");  
+    jmethodID mid = env->GetMethodID(clsstring, "getBytes", "(Ljava/lang/String;)[B");
+    jbyteArray barr = (jbyteArray)env->CallObjectMethod(jstr,mid,strencode);
+    jsize alen = env->GetArrayLength(barr);
+    jbyte* ba = env->GetByteArrayElements(barr,JNI_FALSE);
+    if(alen > 0){
+     rtn = (char*)malloc(alen+1); //new char[alen+1];  
+     memcpy(rtn,ba,alen);
+     rtn[alen]=0;
+    }
+    env->ReleaseByteArrayElements(barr,ba,0);
+    return rtn;
+}
+```
+
+
+
+
+
 #### 设计
 
 一个好的日志系统满足几个条件：
@@ -422,8 +758,10 @@ SCLog原先使用java实现
 
 #### 待办问题
 
-1. jstring
-2. map到普通内存区域和ashmem哪个性能会好点
+1. JNI调用jstring的内存占用优化
+2. ASE还是其他加密方式？
+3. Abseil?
+4. map到普通内存区域和ashmem哪个性能会好点
 
 
 
@@ -431,16 +769,12 @@ SCLog原先使用java实现
 
 - Android 四大组件 https://www.jianshu.com/p/51aaa65d5d25
 - Android组件化、模块化实现 https://www.jianshu.com/p/a7f256e50d2f
-
 - Android JNI笔记 https://www.jianshu.com/p/87ce6f565d37
 - Android NDK官方文档 https://developer.android.google.cn/ndk/guides
 - C++ Abseil 概览 https://zhuanlan.zhihu.com/p/29940200
-
 - C++ Google规范 https://google.github.io/styleguide/cppguide.html
-
 - Git 文档全书 https://git-scm.com/book/zh/v2
-
 - Tencent代码规范 https://techmap.woa.com/oteam/8541
-
 - PlantUML类图绘制 https://blog.csdn.net/junhuahouse/article/details/80767632
+- JNI 从零开始 https://juejin.cn/post/6844904025662423053
 
