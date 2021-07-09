@@ -689,57 +689,65 @@ ptr = alt;//报错；不能更改指针
 
 - 注意：
   - 字符数组可以用常字符串**初始化**
-  - cout<<str;//输出流直接输出字符串，而不是输出首地址
+  - cout<<str;//输出流直接输出字符串，而不是输出首地址。若一定要用cout输出首地址，请先将指针赋值给另一个void*指针，再cout该指针
+  
+  ```cpp
+  char* str = "helloworld";
+  std::cout<<str;//输出整个字符串
+  void* straddr = str;
+  std::cout<<straddr;//输出字符串首地址
+  ```
+  
+  
 
 
 
 ##### jstring与const char*相互转换
 
-- const char* 转换为 jstring：
+1. const char*转jstring（初始化生成jsring）：
 
-``` java
-//将const char*类型转换成jstring类型
-jstring CStr2Jstring(JNIEnv* env, const char* pat){
-    //定义java String类 strClass
-    jclass strClass = (env)->FindClass("java/lang/String");
-    //获取java String类方法String(byte[],String)的构造器,用于将本地byte[]数组转换为一个新String
-    jmethodID ctorID = (env)->GetMethodID(strClass, "<init>", "([BLjava/lang/String;)V");
-    //建立byte数组
-    jbyteArray bytes = (env)->NewByteArray((jsize)strlen(pat));
-    //将char* 转换为byte数组
-    (env)->SetByteArrayRegion(bytes, 0, (jsize)strlen(pat), (jbyte*)pat);
-    //设置String, 保存语言类型,用于byte数组转换至String时的参数
-    jstring encoding = (env)->NewStringUTF("GB2312"); 
-    //将byte数组转换为java String,并输出
-    return (jstring)(env)->NewObject(strClass, ctorID, bytes, encoding);
-}
-```
+   - 库接口：是`JNIEnv`类的方法
 
-- jstring 转换为 char*：
+   ```cpp
+   jstring NewStringUTF(const char* byte)
+   ```
 
-```java
-//将jstring类型转换成char*类型
-char* Jstring2CStr(JNIEnv* env, jstring jstr{  
-    char* rtn = NULL;
-    jclass clsstring = env->FindClass("java/lang/String");   
-    jstring strencode = env->NewStringUTF("GB2312");  
-    jmethodID mid = env->GetMethodID(clsstring, "getBytes", "(Ljava/lang/String;)[B");
-    jbyteArray barr = (jbyteArray)env->CallObjectMethod(jstr,mid,strencode);
-    jsize alen = env->GetArrayLength(barr);
-    jbyte* ba = env->GetByteArrayElements(barr,JNI_FALSE);
-    if(alen > 0){
-     rtn = (char*)malloc(alen+1); //new char[alen+1];  
-     memcpy(rtn,ba,alen);
-     rtn[alen]=0;
-    }
-    env->ReleaseByteArrayElements(barr,ba,0);
-    return rtn;
-}
-```
+   - 原型：是`JNINativeInterface`结构体提供的方法
 
+   ```cpp
+   jstring NewStringUTF(JNIEnv* env, const char* byte)
+   ```
 
+2. jstring转const char\*（反向转换为const char\*）：
 
+   - 库接口：是`JNIEnv`类的方法
 
+   ```cpp
+   const char* GetStringUTFChars(jstring string, jboolean* isCopy)
+   ```
+
+   - 原型：是`JNINativeInterface`结构体提供的方法
+
+   ```cpp
+   const char* GetStringUTFChars(JNIEnv* env, jstring string, jboolean* isCopy);
+   ```
+
+   `Oracle Java Native API`给出以下解释：
+
+   > ... Returns a pointer to an array of bytes representing the string in modified UTF-8 encoding. This array is valid until it is released by `ReleaseStringUTFChars()`.
+   >
+   > 
+   >
+   > If `isCopy` is not `NULL`, then `*isCopy` is set to `JNI_TRUE` if a copy is made; or it is set to `JNI_FALSE` if no copy is made.
+   >
+   > ...
+
+   值得注意的是：
+
+   1. 不再需要const char*之后，需要通过`ReleaseStringUTFChars()`方法释放
+   2. `isCopy()`参数决定是否额外拷贝一份
+
+3. 通过jstring和const jchar\*的相互转换实现jstring和const char\*的相互转换：和以上方法类似，但是是使用`NewString()`和`GetStringChar()`方法。
 
 #### 设计
 
@@ -752,9 +760,9 @@ char* Jstring2CStr(JNIEnv* env, jstring jstr{
 
 #### 架构
 
-SCLog原先使用java实现
+SCLog原先使用java实现，架构如下：
 
-
+![SCLog](res/SCLog.png)
 
 #### 待办问题
 
@@ -762,6 +770,12 @@ SCLog原先使用java实现
 2. ASE还是其他加密方式？
 3. Abseil?
 4. map到普通内存区域和ashmem哪个性能会好点
+
+
+
+### GMate
+
+
 
 
 
@@ -777,4 +791,5 @@ SCLog原先使用java实现
 - Tencent代码规范 https://techmap.woa.com/oteam/8541
 - PlantUML类图绘制 https://blog.csdn.net/junhuahouse/article/details/80767632
 - JNI 从零开始 https://juejin.cn/post/6844904025662423053
+- Java native api 文档 https://docs.oracle.com/javase/7/docs/technotes/guides/jni/spec/functions.html#string_operations
 
