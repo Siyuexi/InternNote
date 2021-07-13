@@ -8,9 +8,11 @@ gestaltxu@tencent.com
 
 ## Knowledge
 
-### Activity
+### 1. Android
 
-#### Activity生命周期
+#### Activity
+
+##### Activity生命周期
 
 ![activity.gif](res/activity.gif.png)
 
@@ -64,31 +66,19 @@ gestaltxu@tencent.com
         </activity>
 ```
 
-
-
-### Service
+#### Service
 
 Service可以没有界面，从而作为后台进程存在。
 
+#### Content Provider
 
+#### Broadcast Receiver
 
-### Content Provider
+#### Intent
 
+#### Context
 
-
-### Broadcast Receiver
-
-
-
-### Intent
-
-
-
-### Context
-
-
-
-### Adapter
+#### Adapter
 
 Adapter用于连接view和view所展示的数据，使用Adapter需要在xml和java中配置
 
@@ -378,6 +368,257 @@ public class MainActivity extends Activity{
 - 一样需要设置item的xml样式
 - 需要额外继承BaseAdapter，并**重写getView()方法**，在方法内通过id查找的方式初始化item
 - 初始化适配器时，数据的格式是**Message**的**List**
+
+
+
+### 2. Node.js
+
+非阻塞、事件驱动
+
+#### 命令行交互与npm
+
+终端输入`node`即可进入环境。支持JavaScript的多行表达式。使用`ctrl+c`退出环境
+
+使用`node <File Name>`即可使用Node.js运行js脚本。
+
+npm是Node.js自带的包管理工具，如同pip之于python。安装模块的语法如下：
+
+- 本地安装：本地安装包将放在./node_modules目录下。通过require()进行引入。发布时，这些依赖项会一起打包
+
+  `npm install <Module Name>`
+
+- 全局安装：全局安装包放在/usr/local目录下（或者node自定义目录下）。可以在命令行中使用
+
+  `npm install <Module Name> -g`
+
+#### 异步
+
+Node.js的异步编程依托于回调函数实现。回调函数在**完成任务后**会被调用。例如对于有文件I/O操作的代码，Node.js执行代码时，没有阻塞和等待文件I/O的操作，而是在文件读取完成之后再把文件内容以回调函数的**参数**的形式返回。
+
+通常回调的参数放在最后面：
+
+```js
+function foo1(param,callback){}
+function foo2(param,callback1,callback2){}
+```
+
+例如，对于同步代码：
+
+```js
+//main.js
+var fs = require("fs");
+var data = fs.readFileSync('input.txt');
+console.log(data.toString());
+console.log("Process Terminated");
+```
+
+输出为：
+
+```
+hello world!
+hello my friend!
+
+Process_Terminated
+```
+
+而对于异步代码：
+
+```js
+//main.js
+var fs = require("fs");
+fs.readFile('input.txt', function (err, data) {
+    if (err) return console.error(err);
+    console.log(data.toString());
+});
+console.log("程序执行结束!");
+```
+
+输出为：
+
+```
+Process_Terminated
+hello world!
+hello my friend!
+
+```
+
+可见，脚本对于`input.txt`的I/O操作并没有阻塞后续脚本代码的执行。
+
+
+
+Node.js 是单进程单线程应用程序，但是因为 V8 引擎提供的异步执行回调接口，通过这些接口可以处理大量的并发，所以性能非常高。基本上所有的Node.js事件机制都是**观察者模式**实现。Node.js 单线程类似进入一个while(true)的事件循环，直到没有事件观察者退出，每个异步事件都生成一个事件观察者，如果有事件发生就调用该回调函数。
+
+![ObserverPattern](res/ObserverPattern.png)
+
+Node.js采用事件驱动模型，web server收到请求，则进行后台处理，然后服务下一个web请求。当前请求处理完成，则放入队列。请求结果到达队列开头时，返回给用户。
+
+![event_loop](res/event_loop.jpg)
+
+Node.js拥有多个内置事件。可以引入events模块、实例化EventEmitter类来**绑定**、**监听**和**处理**事件,如：
+
+```js
+// 引入 events 模块
+var events = require('events');
+// 创建 eventEmitter 对象
+var eventEmitter = new events.EventEmitter(); 
+// 创建事件处理程序
+var connectHandler = function connected() {
+   console.log('connected successfully!');  
+   // 触发 data_received 事件
+   eventEmitter.emit('data_received');
+}
+// 绑定 connection 事件处理程序
+eventEmitter.on('connection', connectHandler);
+// 绑定 data_received 事件处理程序（匿名函数）
+eventEmitter.on('data_received', function(){
+   console.log('data received successfully!');
+});
+// 触发 connection 事件
+eventEmitter.emit('connection');
+console.log("process terminated!");
+```
+
+输出为：
+
+```js
+connected successfully!
+data received successfully!
+process terminated!
+```
+
+实际使用时，我们不会直接使用EventEmitter，而是**继承**它。
+
+更多关于EventEmitter的方法，参见https://www.runoob.com/nodejs/nodejs-event.html
+
+
+
+#### 缓冲
+
+Node.js定义了JavaScript所没有的buffer类，用于缓冲TCP流或文件流的二进制数据。建议通过`Buffer.from()`接口区创建Buffer对象。参数可以是array、arrayBuffer和String。传入String时，需要确定encoding，否则默认为UTF-8编码。如：
+
+```js
+//UTF-8字节:[0x74, 0xc3, 0xa9, 0x73, 0x74]
+const buf1 = Buffer.from('test')；
+//ascii字节:[0x74, 0xc3, 0xa9, 0x73, 0x74]
+const buf2 = Buffer.from('test','ascii');
+//[0x1, 0x2, 0x3]
+const buf3 = Buffer.from([1,2,3]);
+```
+
+写入缓冲区，使用`buf.write(string)`方法，返回实际写入的长度
+
+读出缓冲区，使用`buf.toString(encoding)`方法，返回**指定编码**的字符串
+
+更多关于Buffer的方法，参见https://www.runoob.com/nodejs/nodejs-buffer.html
+
+
+
+#### 流
+
+Node.js有很多对象实现了Stream这个接口。使用可读流和可写流需要引入包`require("fs");`
+
+1. 流式读取demo：
+
+   ```js
+   var fs = require("fs");
+   var data = '';
+   
+   // 创建可读流
+   var readerStream = fs.createReadStream('input.txt');
+   
+   // 设置编码为 utf8。
+   readerStream.setEncoding('UTF8');
+   
+   // 处理流事件 --> data, end, and error
+   readerStream.on('data', function(chunk) {
+      data += chunk;
+   });
+   
+   readerStream.on('end',function(){
+      console.log(data);
+   });
+   
+   readerStream.on('error', function(err){
+      console.log(err.stack);
+   });
+   
+   console.log("Process Terminated");
+   ```
+
+2. 流式写入demo：
+
+   ```js
+   var fs = require("fs");
+   var data = '菜鸟教程官网地址：www.runoob.com';
+   
+   // 创建一个可以写入的流，写入到文件 output.txt 中
+   var writerStream = fs.createWriteStream('output.txt');
+   
+   // 使用 utf8 编码写入数据
+   writerStream.write(data,'UTF8');
+   
+   // 标记文件末尾
+   writerStream.end();
+   
+   // 处理流事件 --> finish、error
+   writerStream.on('finish', function() {
+       console.log("写入完成。");
+   });
+   
+   writerStream.on('error', function(err){
+      console.log(err.stack);
+   });
+   
+   console.log("Process Terminated");
+   ```
+
+3. 管道流demo：
+
+   ```js
+   var fs = require("fs");
+   
+   // 创建一个可读流
+   var readerStream = fs.createReadStream('input.txt');
+   
+   // 创建一个可写流
+   var writerStream = fs.createWriteStream('output.txt');
+   
+   // 管道读写操作
+   // 读取 input.txt 文件内容，并将内容写入到 output.txt 文件中
+   readerStream.pipe(writerStream);
+   
+   console.log("Process Terminated");
+   ```
+
+4. 链式流demo：
+
+   ```js
+   var fs = require("fs");
+   var zlib = require('zlib');
+   
+   // 压缩 input.txt 文件为 input.txt.gz
+   fs.createReadStream('input.txt')
+     .pipe(zlib.createGzip())
+     .pipe(fs.createWriteStream('input.txt.gz'));
+     
+   console.log("File zipped");
+   ```
+
+   ```js
+   var fs = require("fs");
+   var zlib = require('zlib');
+   
+   // 解压 input.txt.gz 文件为 input.txt
+   fs.createReadStream('input.txt.gz')
+     .pipe(zlib.createGunzip())
+     .pipe(fs.createWriteStream('input.txt'));
+     
+   console.log("File unzipped");
+   ```
+
+   
+
+
 
 
 
@@ -744,10 +985,33 @@ ptr = alt;//报错；不能更改指针
 
    值得注意的是：
 
-   1. 不再需要const char*之后，需要通过`ReleaseStringUTFChars()`方法释放
-   2. `isCopy()`参数决定是否额外拷贝一份
+   1. 不再使用const char*之后，需要通过`ReleaseStringUTFChars()`方法释放
+   2. `isCopy`参数是一个**返回值**，用于输出JVM是否对内容进行了拷贝。程序员**无法显式要求字符串的拷贝与否**，只是能通过该返回值得知是否拷贝了：
+      - 使用`GetStringUTFChars`通常总是拷贝
+      - 使用`GetStringCritical`通常总是不拷贝，但是返回UTF-16编码（这是因为JVM对String的编码就是UTF-16，这也是为什么UTF-8编码总是需要额外拷贝一份）
+      - 关于拷贝，可以参考https://stackoverflow.com/questions/22573602/getstringutfchars-and-its-string-copy-behavior问题中的回答
 
 3. 通过jstring和const jchar\*的相互转换实现jstring和const char\*的相互转换：和以上方法类似，但是是使用`NewString()`和`GetStringChar()`方法。
+
+4. 参考https://www.cnblogs.com/codc-5117/archive/2012/09/06/2672833.html
+
+
+
+##### 内存释放
+
+1. `Releasexxx()`:
+
+   该格式的方法用于释放从java获得的拷贝的内存，或时释放对java的String对象的*引用*。通常与`Getxxx()`方法成对出现。
+
+2. `DeleteLocalRef()`：
+
+   该方法用于释放局部引用。局部引用存在于JVM**栈**区，可能存在爆栈的情况。对于在某个循环体或回调函数内部存在较大量的native引用的情况时，要及时释放ref。
+
+在C++中，使用以上两种方法，都可以释放native的const char\*的拷贝或来自jstring的引用。通常，由`GetStringUTFChars()`方法得到的const char\*会由`ReleasaeStringUTFChars()`方法释放；由`NewStringUTF()`方法得到的jstring以及其他java对象会由`DeleteLocalRef()`方法释放。
+
+注意：在jstring转为const char\*时，无论`GetStringUTFChars()`是否返回一个拷贝，使用`ReleaseStringUTFChars()`释放const char\*都是必须的。具体参见回答：https://stackoverflow.com/questions/5859673/should-you-call-releasestringutfchars-if-getstringutfchars-returned-a-copy
+
+
 
 #### 设计
 
@@ -766,14 +1030,14 @@ SCLog原先使用java实现，架构如下：
 
 #### 待办问题
 
-1. JNI调用jstring的内存占用优化
+1. JNI调用jstring的内存占用优化（🙆）
 2. ASE还是其他加密方式？
 3. Abseil?
 4. map到普通内存区域和ashmem哪个性能会好点
 
 
 
-### GMate
+### XiaoYue
 
 
 
@@ -792,4 +1056,7 @@ SCLog原先使用java实现，架构如下：
 - PlantUML类图绘制 https://blog.csdn.net/junhuahouse/article/details/80767632
 - JNI 从零开始 https://juejin.cn/post/6844904025662423053
 - Java native api 文档 https://docs.oracle.com/javase/7/docs/technotes/guides/jni/spec/functions.html#string_operations
+
+- vim使用说明 https://www.runoob.com/linux/linux-vim.html
+- 微服务 https://www.zhihu.com/question/65502802
 
