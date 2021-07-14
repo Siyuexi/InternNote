@@ -644,7 +644,7 @@ VLink是一个sdk，这里的app只是拿来做测试用的demo，sdk源码都�
 
 ![vlink5](res/vlink5.png)
 
-### SCLog
+### SLog
 
 #### JNI基础
 
@@ -1027,6 +1027,18 @@ ptr = alt;//报错；不能更改指针
 SCLog原先使用java实现，架构如下：
 
 ![SCLog](res/SCLog.png)
+
+#### 开发
+
+##### Abseil mutex
+
+https://www.jianshu.com/p/d2834abd6796
+
+##### Abseil mmap
+
+这个还是直接看abseil项目源码吧
+
+
 
 #### 待办问题
 
