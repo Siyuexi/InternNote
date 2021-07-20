@@ -644,7 +644,7 @@ VLink是一个sdk，这里的app只是拿来做测试用的demo，sdk源码都�
 
 ![vlink5](res/vlink5.png)
 
-### SLog
+### SCLog
 
 #### JNI基础
 
@@ -1028,42 +1028,12 @@ SCLog原先使用java实现，架构如下：
 
 ![SCLog](res/SCLog.png)
 
-#### 开发
-
-##### Abseil mutex
-
-https://www.jianshu.com/p/d2834abd6796
-
-##### Abseil mmap
-
-1. open / fopen
-
-2. String_view碎片化的数据写入，不应有太多拷贝。考虑使用string_view
-
-   https://zhuanlan.zhihu.com/p/98089982
-
-> std::string_view是C++ 17标准中新加入的类，正如其名，它提供一个字符串的视图，即可以通过这个类以各种方法“观测”字符串，但不允许修改字符串。由于它只读的特性，它并不真正持有这个字符串的拷贝，而是与相对应的字符串共享这一空间。即——构造时不发生字符串的复制。同时，你也可以自由的移动这个视图，移动视图并不会移动原定的字符串。
-
-- 通过调用 string_view 构造器可将字符串转换为 string_view 对象。string 可隐式转换为 string_view。
-- string_view 是只读的轻量对象，它对所指向的字符串没有所有权。
-- string_view通常用于函数参数类型，可用来取代 const char* 和 const string&。string_view 代替 const string&，可以避免不必要的内存分配。
-- string_view的成员函数即对外接口与 string 相类似，但只包含读取字符串内容的部分。
-  string_view::substr()的返回值类型是string_view，不产生新的字符串，不会进行内存分配。string::substr()的返回值类型是string，产生新的字符串，会进行内存分配。
-- string_view字面量的后缀是 sv。（string字面量的后缀是 s）
-
-
-
-3. 写入**数据**的时候使用fprint写入？（毕竟原子操作）还是使用absl::StringFormat（abseil重写了fprint）？
-
-
-
-
-
 #### 待办问题
 
 1. JNI调用jstring的内存占用优化（🙆）
-2. mmap_utils
-3. ASE
+2. ASE还是其他加密方式？
+3. Abseil?
+4. map到普通内存区域和ashmem哪个性能会好点
 
 
 
@@ -1071,54 +1041,41 @@ https://www.jianshu.com/p/d2834abd6796
 
 
 
-### GMate
-
-#### 依赖
-
-prefab是aar库中打包好的C/C++原生依赖项.
-
-更改build.gradle使现有应用变为安卓库。
-
-前情：
-
-GMate对STL存在依赖，且其使用的长链接库Salmon也对STL存在依赖。之前的方案是使用prefab生成STL动态链接库的形式，同时提供STL接口给GMate主体。
-
-问题：
-
-游戏方提出，不应该在游戏包外面暴露STL的接口，因此需要使用静态链接。这里出现了一个问题，即GMate主体及其长链接模块都对STL有需求。如果Salmon采用静态链接的方式编译STL，那么GMate主体的代码中使用的STL库的方法究竟来源于哪个STL呢？是GMate的？还是GMate-Salmon的？这里有**二重定义**问题。
-
->如果应用的所有原生代码均位于一个共享库中，我们建议使用静态运行时。这样可让链接器最大限度内联和精简未使用的代码，使应用达到最优化状态且文件最小巧。这样做还能避免旧版 Android 中的 PackageManager 和动态链接器出现错误，此类错误可导致处理多个共享库变得困难，且容易出错。
->
->然而，在 C++ 中，在单一程序中定义多个相同函数或对象的副本并不安全。这是 C++ 标准中提出的[单一定义规则](http://en.cppreference.com/w/cpp/language/definition)的一个方面。
->
->如果使用静态运行时（以及一般静态库），很容易在不经意间破坏这条规则。例如，以下应用就破坏了这一规则：
-
-> No translation unit shall contain more than one definition of any variable, function, class type, enumeration type or template.
->
-> [...]
->
-> Every program shall contain exactly one definition of every non-inline function or object **that is used in that program**; no diagnostic required. The definition can appear explicitly in the program, it can be found in the standard or a user-defined library, or (when appropriate) it is implicitly defined (see 12.1, 12.4 and 12.8). An inline function shall be defined in every translation unit in which it is used.
-
-解决：
-
-针对App：
-prefab打成stl_shared，也就是使用stl的动态链接库
-针对游戏：
-
-1. 不用prefab，使用源码引入编译（但这样会导致后续增加新的模块时，如果模块需要STL，就也需要引入源码）
-2. 依赖STL的源码独立为一个module，生成静态连接库，输出的module只使用C API，把前一个module生成的静态库编译进去，打成一个prefab。（但这样会导致新来的包不能直接拿来用，仍然需要改造）
 
 
 
-创建AAR库：https://developer.android.com/studio/projects/android-library
 
-原生依赖项：https://developer.android.com/studio/build/native-dependencies
+## 答辩
 
-C++库支持：https://developer.android.com/ndk/guides/cpp-support
+### 看看KM的“实习生模块”
 
-STL问题指南：https://developer.android.com/ndk/guides/cmake#android_stl
+1. 一定要有**工作中的总结**，包括：
+   - 业务上的经验、建议（要用**高情商**的委婉说法）：
+     - 产品端：把设计需求列成在线文档，和开发对接，具体数值都写清楚（例如px转dp的数值）
+     - 测试端：测试环境和bug触发不清楚，应该规范化测试环境和触发方式的格式
+     - 开发端：一定要有文档，包括核心部分的代码和上层的接口，甚至层与层之间的接口（Java和Native这类）
+   - 技术上的理解：
+     - 找问题：官方文档->stackoverflow->搜索引擎->源码（如果有）
+     - demo：开发前做调研，尽可能做demo，进行方案测试，及时舍弃走不通的路。
+     - 学习：平时多写leetcode才能保持“码感”
+     - 归纳：整理每个问题的解决方案的**网址**和**笔记**
+   - 各种吐槽和**找茬**
+2. 一定要重视形而上的思维，**不能死抓工作量**
+   - 花式吹自己的**各种工作**：
+     - 写代码
+     - 写笔记
+     - 对接测试和产品
+   - 时间花在哪里了：同上
+   - 开篇：吹自己的背景简历
+   - 结尾：自己的**体验**和**心得**
+3. 突出**自己做了什么**，而不是项目介绍
+4. 注意时间，一定要提前排练演讲
+5. 不要偏听kesco的理解，他太单纯，有些套路也摸不明白
+6. ***别以为自己真做了啥，对于大佬们来说，皮毛都不到，他们也不指望真能做什么，重点是解决问题的思想和主动解决问题的能力***
 
 
+
+可以在ppt上把细节都展示出来，但是不要照着念，演讲的内容要简洁并且概括性。尤其是**主动性思考**和**成长轨迹**
 
 ## 答辩
 
