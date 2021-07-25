@@ -209,9 +209,45 @@ $$
 
 #### (2) 迁移学习
 
+基础知识：https://zhuanlan.zhihu.com/p/33172587
+
+面经：https://juejin.cn/post/6844903918275657742
+
 就是指利用已经训练好的开源网络模型比如常见的VGG系列、Resnet系列、GoogleNet系列、MobileNet等，利用这些网络和其已经在其他大型数据集上训练好的权重参数，将自己的任务数据集在这些迁移过来的网络上进行训练或者微调。这里迁移是指迁移网络模型和网络预训练的权重。当然，在网络和其权重迁移过来后，还可以在后面加上其他的网络模块，构成新的网络模型。
 
 用开源网络模型进行迁移学习，不仅能大大降低参数迭代的时间，同时还具有更好的泛化性能。使用开源网络本质就是一个**知识迁移**的过程。这都是由于**预初始化的参数网络具有额外的训练数据集信息**的缘故。
+
+##### Domain Adaptation
+
+即领域自适应
+
+https://zhuanlan.zhihu.com/p/50710267
+
+https://www.infoq.cn/article/b40tCBfQ-paDPDz5ZQzl
+
+
+
+### Baseline&Benchmark
+
+在试验阶段，我们通常使用一些领域内常见的dataset做benchmark。通过对比这些领域内baseline的效果、（甚至）领域内state-of-the-art的效果与我们论文提出的论文的效果，来凸显我们模型的优越性。
+
+#### (1)Baseline
+
+Baseline通常是某个领域的**最常用模型**，是一系列模型比较中的**参照物**。与Baseline的效果进行对比，能说明我们模型的优化方向是否正确（或者有没有反向优化等）。
+
+#### (2)Benchmark
+
+Benchmark通常是使用某领域内**最常用数据集**对不同方法进行跑分测试的**过程**。能说明我们模型是否比其他模型更优秀。
+
+-----------------------------------------------------
+
+迁移学习相关的Benchmark和其baseline请参考https://github.com/jindongwang/transferlearning/blob/master/data/benchmark.md
+
+---
+
+
+
+
 
 
 
