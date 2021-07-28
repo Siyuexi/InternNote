@@ -644,6 +644,29 @@ VLink是一个sdk，这里的app只是拿来做测试用的demo，sdk源码都�
 
 ![vlink5](res/vlink5.png)
 
+#### 传参
+
+VLink-Android需要和iOS一样，保持和后台一致的传参。这需要统一JSON包的格式。
+
+参数最初从游戏端传入。开发阶段，参数从demo手动传入（JSON转字符串或直接传JSON字符串）。传参流程为：
+
+```mermaid
+graph LR
+MainActivity --> GameParameter --> ReqInfo --> JSON
+```
+
+**流程：**	从demo读取的json参数传入SDK的GameParameter类，值传给对应变量。ReqEngine类从GameParamter类读取参数，放入ReqInfo类内。ReqInfo会格式化将要发送到服务端的json信息。之后ReqInfo写入JSON，并发送给服务端。
+
+本次传参需要额外增加一个itopParam结构。因此需要更新ReqInfo类的结构。内部增加一个json结构：
+
+![json1](res/json1.png)
+
+itopParam内具有时间戳和数字签名。时间戳需要使用java获取系统时间，数字签名需要额外加入MD5加密的函数：
+
+![json2](res/json2.png)
+
+其余itopParam参数，在GameParameter和ReqInfo等类内增设成员变量即可。
+
 ### SCLog
 
 #### JNI基础
