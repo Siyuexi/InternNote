@@ -227,17 +227,21 @@ https://www.infoq.cn/article/b40tCBfQ-paDPDz5ZQzl
 
 
 
-### Baseline&Benchmark
+### 实验
 
 在试验阶段，我们通常使用一些领域内常见的dataset做benchmark。通过对比这些领域内baseline的效果、（甚至）领域内state-of-the-art的效果与我们论文提出的论文的效果，来凸显我们模型的优越性。
 
 #### (1)Baseline
 
-Baseline通常是某个领域的**最常用模型**，是一系列模型比较中的**参照物**。与Baseline的效果进行对比，能说明我们模型的优化方向是否正确（或者有没有反向优化等）。
+Baseline通常是某个领域的**最常用模型**，是一系列模型比较中的**参照标准**。与Baseline的效果进行对比，能说明我们模型的优化方向是否正确（或者有没有反向优化等）。backbone是在finetuning中使用的主干网络
 
 #### (2)Benchmark
 
-Benchmark通常是使用某领域内**最常用数据集**对不同方法进行跑分测试的**过程**。能说明我们模型是否比其他模型更优秀。
+这个在不同方面代表不同的意思，一般指**具体实验的载体**，在CV中主要指DataSet,**某一类数据集**用来实验某一项研究，如当前比较火的Meta-learning中的Omniglot,就是一个多种类，单个种类样本却很少的数据集。专门用来玩few shot learning或者 one shot learning.或者专门用来做视频的UTF101,moving-mnist，就是视频类文章的benchmark
+
+#### (3)Backbone
+
+主要是指某一种**基干网络**，比如比较主流网络残差resnet,对抗生成gan,然后在基干网络上加东西或者改东西。
 
 -----------------------------------------------------
 
