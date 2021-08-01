@@ -199,27 +199,70 @@ $$
 
 #### (1) 元学习
 
-元学习即学会如何学习。通常着重于**样本之间的相似性**而非**样本自身的特点**。本质是研究如何让神经网络很好的利用以往的知识，使得能根据新任务的调整自己。
+- 元学习重点在显性**寻找相似性**。（为什么是显性：因为模型的损失函数是基于同种数据跑出来的结果之间的差异）
 
-元学习最终所用于分类的数据（不论是support set 还是 query）都不会出现在训练数据中。但模型最终能正确进行分类。本质上是一种**知识迁移**的过程，即网络将**如何寻找相似性**的知识迁移到了新的分类任务中。
-
-以元学习最经典的Siamese网络为例。Siamese网络的损失函数是两个向量之间的相似度。这两个向量的标签可能相同也可能不同。Siamese网络需要迭代出最好的参数矩阵，使得网络学习到如何区分两个样本之间的相似程度。
+- 使用大量有标签的已知域的数据集进行训练，反向传播使得同种数据在同种网络中输出结果更相似。网络用于**归类**少量标签的目标域的数据。是一个聚合归类的过程。
 
 
 
 #### (2) 迁移学习
 
+- 迁移学习重点在隐性**迁移知识**。（为什么是隐形：因为参数迁移的时候是假定了这些参数能提取数据间的关联性）
+- 使用大量有标签的已知域的数据集进行监督学习的训练，得到预训练模型。其参数用于**初始化**少量标签的目标域的网络。是一个pre-train与fine-tuning的过程。
+
+
+
 基础知识：https://zhuanlan.zhihu.com/p/33172587
 
 面经：https://juejin.cn/post/6844903918275657742
 
-就是指利用已经训练好的开源网络模型比如常见的VGG系列、Resnet系列、GoogleNet系列、MobileNet等，利用这些网络和其已经在其他大型数据集上训练好的权重参数，将自己的任务数据集在这些迁移过来的网络上进行训练或者微调。这里迁移是指迁移网络模型和网络预训练的权重。当然，在网络和其权重迁移过来后，还可以在后面加上其他的网络模块，构成新的网络模型。
+##### Fine-Tuning
 
-用开源网络模型进行迁移学习，不仅能大大降低参数迭代的时间，同时还具有更好的泛化性能。使用开源网络本质就是一个**知识迁移**的过程。这都是由于**预初始化的参数网络具有额外的训练数据集信息**的缘故。
+ 通常使用一个预训练网络的参数初始化另一个Task的网络。通常只Transfer前n层。最好情况是前n层的参数一样能被fine-tuning。最坏情况是只train最后几层，而固定Transfer过来的层不变。
+
+用target训练出来的模型，固定前几层，后几层用source重新训练，结果也会更差
+
+![fine-tuning](res/fine-tuning.png)
+
+##### Multi-Task Learning
+
+解决相似Task时，可以同时训练这些Task的数据。保留前几层相同，仅在最后层上做特化处理。（不同Task的数据，训练时所使用的最后几层各不相同，但是前几层的参数在训练过程中是完全一致的。）
+
+![multi-task_learning1](res/multi-task_learning1.png)
+
+![multi-task_learning2](res/multi-task_learning2.png)
+
+##### Progressive Neural Network
+
+递进的学习。不断得到新的网络。
+
+过程是：把一个域的参数迁移到下一个域。每增加一个Task，就多新增拷贝+迁移得到一个解决新域的Task的网络。
+
+注意：每个原Task域的网络参数不变，增加Task时相当于**多拷贝了一份**进行fine-tuning。
+
+![progressive_learning](res/progressive_learning.png)
 
 ##### Domain Adaptation
 
-即领域自适应
+即域自适应。用于解决相似或相同Task，但是域与域之间feature dismatch的情况。
+
+通常这些domain的feature分布不均匀（例如source domain的feature分布零散，而target domain的feature分布集中，这样会导致分类器对source的分类效果很好，但是对target的分类很混淆）这个情况需要使用domain-adversarial结构进行domain adaptation。 
+
+![domain-adaptation1](res/domain-adaptation1.png)
+
+这个结构有点类似GAN：Domain classifier会尽力区分这些feature是否来源于同一个domain；Label predictor会尽力区分这些featrue的label；而feature extractor会尽力混淆这些feature使得domain classifer无法分辨、同时让Label predictor尽可能能够分辨featrue的label（即保留最多信息的同时混淆features的分布）
+
+![domain-adaptation2](res/domain-adaptation2.png)
+
+反向传播时，来自Domain classifer的参数值会乘一个负号。即反向传播到feature extractor时。不再是梯度下降，而是梯度上升（domain classfier 梯度下降让自己更能分辨；feature extractor梯度上升让domain classifier无法分辨）；而label predictor到feature extractor的梯度下降过程不变。
+
+
+
+##### Zero-shot Learning
+
+
+
+
 
 https://zhuanlan.zhihu.com/p/50710267
 
