@@ -832,6 +832,79 @@ $ ldd main
 
 
 
+### 4. CMake
+
+cmake命令不区分大小写
+
+#### CMakeLIst.txt
+
+**必备**设置最小版本号与项目名
+
+```cmake
+cmake_minimum_required (VERSION versionNumber [FATAL_ERROR])
+project(projectName [CXX] [C] [Java])
+```
+
+
+
+显示定义变量或为已有变量赋值
+
+```cmake
+set(var [value])
+```
+
+之后可以用`${var}`的方式引用全局变量。全局所有该标记将会被替换为对应的变量值。
+
+
+
+向工程中添加多个特定的**头文件搜索路径**
+
+```cmake
+include_directories([after/before] [system] dir1 dir2 ... dirn)
+```
+
+
+
+将指定**源文件编译成链接库**（fileName.a/fileName.so）
+
+```cmake
+add_library(fileName) [SHARED/STATIC]
+```
+
+
+
+向工程中增加可执行文件
+
+```cmake
+add_executable(fileName ${fileSource})
+```
+
+指定生成fileName可执行文件。${fileSource}是其相关源文件列表
+
+
+
+添加**非标准共享库的路径**（静态/动态链接库）
+
+```cmake
+link_directories(dir1 dir2 ... dirn)
+```
+
+
+
+为target**链接**所需的库
+
+```cmake
+target_link_libraries(target lib1 lib2)
+```
+
+
+
+#### .cmake
+
+
+
+
+
 
 
 ## Project
@@ -1264,6 +1337,52 @@ SCLog原先使用java实现，架构如下：
 ![SCLog](res/SCLog.png)
 
 #### 开发
+
+##### C++降级
+
+从C++11降级到C++17主要有以下问题：
+
+1. C++11不支持嵌套命名空间（warning）
+
+2. C++11不支持一些新的std语法，例如：
+
+   1. 没有std::enable_shared_from_this类
+   2. 没有std::atomic=的赋值方法
+   3. 没有std::unique_lock，只有std::unique_lock\<T\>
+
+3. C++11不支持对含有缺省值初始化（就地初始化）的结构体进行列表初始化。两种初始化方式相互冲突
+
+   参考https://cloud.tencent.com/developer/article/1394301
+
+   拟采用重载构造函数的方式替代列表初始化
+
+   ```C++
+   struct s{
+   	int a;
+   	int b;
+   	s(){
+   		a = 1;
+   		b = 2;
+   	};
+   	s(int c, int d){
+   		a = c;
+   		b = d;
+   	};
+   };
+   
+   int main(){
+   	s s1();
+   	s s2(3,4);
+   	cout<<"s1: "<<s1.a<<" "<<s1.b<<endl;// 1 2
+   	cout<<"s2: "<<s2.a<<" "<<s2.b<<endl;// 3 4
+     //在CLion里面，以下方式也被认可：
+     s s3{};
+     s s4{3,4};
+     
+   }
+   ```
+
+   
 
 ##### 线程安全
 

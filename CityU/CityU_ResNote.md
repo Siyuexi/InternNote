@@ -201,20 +201,16 @@ $$
 
 - 元学习重点在显性**寻找相似性**。（为什么是显性：因为模型的损失函数是基于同种数据跑出来的结果之间的差异）
 
-- 使用大量有标签的已知域的数据集进行训练，反向传播使得同种数据在同种网络中输出结果更相似。网络用于**归类**少量标签的目标域的数据。是一个聚合归类的过程。
+- 使用原模型根据新Task生成适应的新模型，实现多任务的泛化。
 
 
 
 #### (2) 迁移学习
 
 - 迁移学习重点在隐性**迁移知识**。（为什么是隐形：因为参数迁移的时候是假定了这些参数能提取数据间的关联性）
-- 使用大量有标签的已知域的数据集进行监督学习的训练，得到预训练模型。其参数用于**初始化**少量标签的目标域的网络。是一个pre-train与fine-tuning的过程。
+- 通过不断将原模型迁移到新Task进行微调，实现多任务的泛化。
 
 
-
-基础知识：https://zhuanlan.zhihu.com/p/33172587
-
-面经：https://juejin.cn/post/6844903918275657742
 
 ##### Fine-Tuning
 
@@ -260,9 +256,25 @@ $$
 
 ##### Zero-shot Learning
 
+source data作为traning data，target data作为testing data。即traning中没有任何一个target的数据
 
+解决方法是**找出比单个样本本身更小的单位**，例如某个图片是否具有某几个attributes。用特征的符合情况对数据归类。
 
+![zero-shot_learning1](res/zero-shot_learning1.png)
 
+通过attribute embedding层，使得每个图片对应的attribute经过嵌入后，和对应的图片通过image embedding之后在同一个嵌入向量空间中尽可能接近。这样输入testing data后，根据其在embedding空间中的位置，即可提取它的attribute，并且进行归类。
+
+![zero-shot_learning2](res/zero-shot_learning2.png)
+
+损失函数的思路是，让attribute和对应的image在embedding空间尽可能接近，同时与不同image尽可能远。（即元学习triplet网络的损失函数的思路）：
+$$
+f^*,g^*=\arg \min_{f,g}\sum_n\max(0,k-f(x^n)\cdot g(x^n)+\max_{m\ne n}f(x^n)\cdot g(y^m))\\
+$$
+即：
+$$
+f(x^n)\cdot g(x^n)-\max_{m\ne n}f(x^n)\cdot g(y^m)>k
+$$
+的时候才是最好的（zero-loss）。如果不同图片的向量之间相互正交，那就再好不过了（点乘=0）
 
 https://zhuanlan.zhihu.com/p/50710267
 
@@ -300,7 +312,76 @@ Baseline通常是某个领域的**最常用模型**，是一系列模型比较�
 
 ## Project
 
+### 思路
 
+1. 使用单个迁移模型（from 任意一个dataset）效果一般
+2. 每次单独使用不同的迁移模型，效果未知，要选benchmark跑baseline
+3. 串行使用不同的迁移模型以迁移到同一个方向上，效果如何呢？
+
+2和3的比较，如果能突出3的优势，则大功告成。
+
+### 确定Benchmark跑Baseline
+
+使用基于以下模型与训练的ResNet18模型，对Caltech数据集上进行测试，把迁移的Baseline跑出来
+
+|               | Datasets                                                     | Pretrained Models                                            |
+| ------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| Datasets      |                                                              | ResNet18                                                     |
+| Caltech-256   | https://robustnessws4285631339.blob.core.windows.net/public-datasets/caltech256.tar?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-10-05T15:06:23Z&st=2020-06-10T07:06:23Z&spr=https&sig=Rwwsg9yfcSrbNLvxse%2F32XOy7ERWSLXMz9Ebka4pS20%3D | https://github.com/TropComplique/image-classification-caltech-256/blob/master/resnet/train18.ipynb       https://github.com/PKUAI26/AT-CNN/blob/master/code/baseline/main.py |
+| CIFAR-100     |                                                              | https://github.com/weiaicunzai/pytorch-cifar100              |
+| DTD           | https://robustnessws4285631339.blob.core.windows.net/public-datasets/dtd.tar?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-10-05T15:06:23Z&st=2020-06-10T07:06:23Z&spr=https&sig=Rwwsg9yfcSrbNLvxse%2F32XOy7ERWSLXMz9Ebka4pS20%3D | https://github.com/microsoft/robust-models-transfer          |
+| Flowers102    | https://robustnessws4285631339.blob.core.windows.net/public-datasets/flowers.tar?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-10-05T15:06:23Z&st=2020-06-10T07:06:23Z&spr=https&sig=Rwwsg9yfcSrbNLvxse%2F32XOy7ERWSLXMz9Ebka4pS20%3D | [https://github.com/Muhammad-MujtabaSaeed/102-Flowers-Classification/blob/master/102_Flowers_classification.ipynb            https://github.com/microsoft/robust-models-transfer](https://github.com/Muhammad-MujtabaSaeed/102-Flowers-Classification/blob/master/102_Flowers_classification.ipynb) |
+| Pets          | https://robustnessws4285631339.blob.core.windows.net/public-datasets/pets.tar?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-10-05T15:06:23Z&st=2020-06-10T07:06:23Z&spr=https&sig=Rwwsg9yfcSrbNLvxse%2F32XOy7ERWSLXMz9Ebka4pS20%3D | https://github.com/microsoft/robust-models-transfer          |
+| Sun397        | https://robustnessws4285631339.blob.core.windows.net/public-datasets/SUN397.tar?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-10-05T15:06:23Z&st=2020-06-10T07:06:23Z&spr=https&sig=Rwwsg9yfcSrbNLvxse%2F32XOy7ERWSLXMz9Ebka4pS20%3D | https://github.com/microsoft/robust-models-transfer          |
+| SVHN          | http://ufldl.stanford.edu/housenumbers/                      | https://github.com/codyaustun/pytorch-resnet                 |
+| Food          | https://robustnessws4285631339.blob.core.windows.net/public-datasets/food.tar?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-10-05T15:06:23Z&st=2020-06-10T07:06:23Z&spr=https&sig=Rwwsg9yfcSrbNLvxse%2F32XOy7ERWSLXMz9Ebka4pS20%3D | https://github.com/alvarobartt/serving-pytorch-models/blob/master/notebooks/transfer-learning.ipynb |
+| Aircraft      | https://robustnessws4285631339.blob.core.windows.net/public-datasets/fgvc-aircraft-2013b.tar.gz?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-10-05T15:06:23Z&st=2020-06-10T07:06:23Z&spr=https&sig=Rwwsg9yfcSrbNLvxse%2F32XOy7ERWSLXMz9Ebka4pS20%3D | https://github.com/microsoft/robust-models-transfer          |
+| Birds         | https://robustnessws4285631339.blob.core.windows.net/public-datasets/birdsnap.tar?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-10-05T15:06:23Z&st=2020-06-10T07:06:23Z&spr=https&sig=Rwwsg9yfcSrbNLvxse%2F32XOy7ERWSLXMz9Ebka4pS20%3D | https://github.com/microsoft/robust-models-transfer          |
+| Stanford_Cars | https://robustnessws4285631339.blob.core.windows.net/public-datasets/stanford_cars.tar?sv=2019-10-10&ss=b&srt=sco&sp=rlx&se=2021-10-05T15:06:23Z&st=2020-06-10T07:06:23Z&spr=https&sig=Rwwsg9yfcSrbNLvxse%2F32XOy7ERWSLXMz9Ebka4pS20%3D | https://github.com/microsoft/robust-models-transfer          |
+
+#### 问题与进度：
+
+1. 以上好像只有源码，没有模型。
+
+2. torchvision提供的预训练模型都是用ImageNet-1k训练好的
+
+3. 直接使用预训练模型，最后一层全链接层输出的**class数**是固定的。需要手动更改最终输出的**class数量**，参考https://blog.csdn.net/andyL_05/article/details/108930240提供的解释:
+
+   > 在分类问题上，模型的最后一层一般是一个全连接层，输出的神经元个数就是类别信息，最后输出结果是一个浮点向量，大小表示某一类别的可能性，数值越大说明越倾向于分为该类。
+   > 显然直接使用预训练的网络不加修改那么总类别数就是固定的，当我们使用的场景类别数不一致时，就要自行修改模型的最后一层。
+
+可以手动访问预训练网络的某些层，来更改其结构：
+
+```python
+from torch import nn
+res18 = models.resnet101(pretrained=True)
+numFit = res18.fc.in_features
+
+res18.fc = nn.Linear(numFit, numClass)
+
+# res18.fc = nn.Sequential(nn.Linear(numFit, numClass), nn.Softmax(dim=1))
+```
+
+这里也可以十分贴心的提供了softmax，使得最终输出的就是概率分布。
+
+**已解决**：**不用更改原模型！！！**就是需要用最原始的pre-trained model跑出feature来！
+
+4. 在用torchvision提供的resnet18模型对caltech256数据集进行测试的时候碰到了几个问题：
+
+   1. 预训练模型使用的source的class和target的class不能完全对应。target里面有些class，在source里面是没有的。这种情况，是不是不该对target中这些source里面不存在的class进行分类呢？
+
+      （不然分类成啥都是错的）
+
+   2. source的class映射的类编号可能和target的class映射的类编号不同（model的数值label不同）。比如导入进去的target里面，“猫”这个类在模型中是第1个类，但是在source中可能是第5个类。是不是意味着我必须手动调整target里面的类的编号和source一致呢（假设source和target里面都有猫这个类）
+
+   **已解决：** 
+
+   pretrained model是用来提取feature的网络罢了
+
+   - target data通过pre-trained model 输出的向量，仅仅只是**作为feature**（其实际意义大概是“**更接近原先source中某个class的程度**”）。这些feature提供给后续的SVM做分类的时候使用。
+   - 这样SVM可能会得到一些来自pre-trained model提取的feature信息。而target中，相同的class可能会**共享部分feature**，这会使得SVM分类器**更倾向于把他们归为一类**。
+   - 现在跑baseline，是每次**仅使用一个pre-trained model**的SVM分类的效果
+   - 但是需要注意不同pre-trained model 输出的“feature”的维度可能不一样。后续要考虑维度兼容？
 
 ## Reference
 
