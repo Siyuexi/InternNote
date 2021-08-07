@@ -19,8 +19,8 @@ image_size = 28  # 图像尺寸28*28
 learning_rate = 0.001 # 学习率0.001
 
 # 导入数据集，允许从互联网下载数据集以及预向量化
-train_dataset = torchvision.datasets.MNIST(root='./data',train=True,transform=transforms.ToTensor(),download=True) 
-test_dataset = torchvision.datasets.MNIST(root='./data',train=False,transform=transforms.ToTensor(),download=True)
+train_dataset = torchvision.datasets.MNIST(root='../dataset',train=True,transform=transforms.ToTensor(),download=True) 
+test_dataset = torchvision.datasets.MNIST(root='../dataset',train=False,transform=transforms.ToTensor(),download=True)
 
 # 装载训练集，随机划分训练批次
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,batch_size=batch_size,shuffle=True)

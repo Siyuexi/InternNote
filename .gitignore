@@ -1,0 +1,13 @@
+# IDE config
+.vscode
+
+# generated
+CityU/code/feature
+CityU/code/model
+
+# downloaded
+CityU/code/dataset
+
+# preserved
+!CityU/code/pretrained
+!CityU/code/src
