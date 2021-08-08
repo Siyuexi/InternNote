@@ -1,3 +1,10 @@
+"""
+
+    Created by Gestaltxu
+    siyuexi@hust.edu.cn
+    A pytorch template(cpu)
+
+"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -113,8 +120,8 @@ net = ConvNet()
 criterion = nn.CrossEntropyLoss() 
 optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-record = [] #记录错误率
-weights = [] #记录卷积核
+record = [] # 记录错误率
+weights = [] # 记录卷积核
 
 """ 训练过程 """
 # epoch迭代
@@ -124,14 +131,14 @@ for epoch in range(num_epochs):
     train_accuracy = [] 
     
     # batch迭代
-    for batch_id, (data,target) in enumerate(train_loader):
+    for batch_id, (data,label) in enumerate(train_loader):
 
         # 模型训练
         net.train()
         
         # 计算Loss
         output =  net(data) 
-        loss = criterion(output, target) 
+        loss = criterion(output, label) 
         
         # 优化权重
         optimizer.zero_grad()
@@ -139,51 +146,51 @@ for epoch in range(num_epochs):
         optimizer.step()
         
         # 计算精度
-        accuracies = accuracy(output, target)
+        accuracies = accuracy(output, label)
         train_accuracy.append(accuracies)
         
-        """ 可视化：每间隔100个batch打印一次精度信息"""
+        """ 可视化：每间隔100个batch做一次validation，并且打印一次精度信息"""
         if batch_id%100 ==0: 
 
             # 模型评估(训练集、校验集)
             net.eval() 
             val_accuracy = [] #记录校验数据集准确率
             
-            #迭代已遍历过的训练集数据：
-            for (data, target) in validation_loader: 
+            # 迭代已遍历过的训练集数据：
+            for (data, label) in validation_loader: 
 
-                #完成一次前馈，记录输出
+                # 完成一次前馈，记录输出
                 output = net(data) 
 
-                #记录精度计算所需数据，返回(正确样例数，总样本数)
-                accuracies = accuracy(output, target) 
+                # 记录精度计算所需数据，返回(正确样例数，总样本数)
+                accuracies = accuracy(output, label) 
                 val_accuracy.append(accuracies)
                 
-            #记录训练集中分类正确样本数与总样本数
+            # 记录训练集中分类正确样本数与总样本数
             train_r = (sum([tup[0] for tup in train_accuracy]), sum([tup[1] for tup in train_accuracy]))
 
-            #记录校验集中分类正确样本数与总样本数
+            # 记录校验集中分类正确样本数与总样本数
             val_r = (sum([tup[0] for tup in val_accuracy]), sum([tup[1] for tup in val_accuracy]))
             
-            #打印准确率：本训练周期Epoch开始后到目前batch的正确率的平均值
+            # 打印准确率：本训练周期Epoch开始后到目前batch的正确率的平均值
             print('Epoch [{}/{}]\tBatch [{}/{}]\tSample [{}/{}]\tLoss: {:.6f}\tTrainAccuracy: {:.2f}%\tValidationAccuracy: {:.2f}%'.format(
                 epoch+1,num_epochs,min(batch_id+100,epoch_size//batch_size),epoch_size//batch_size ,(batch_id+100) * batch_size, epoch_size,
                 loss.item(), 
                 100. * train_r[0] / train_r[1], 
                 100. * val_r[0] / val_r[1]))
             
-            #记录准确率与权重
+            # 记录准确率与权重
             record.append((100 - 100. * train_r[0] / train_r[1], 100 - 100. * val_r[0] / val_r[1]))
             
             # weights记录了训练周期中所有卷积核的演化过程。net.conv1.weight就提取出了第一层卷积核的权重
             weights.append([net.conv1.weight.data.clone(), net.conv1.bias.data.clone(), 
                             net.conv2.weight.data.clone(), net.conv2.bias.data.clone()])
 
-#绘制训练过程的误差曲线，验证集和测试集上的错误率。
+# 绘制训练过程的误差曲线，验证集和测试集上的错误率。
 plt.figure(figsize = (10,7))
 plt.plot(record)
 plt.xlabel('Steps')
-plt.ylabel('Error rate')
+plt.ylabel('Error rate(%)')
 plt.show()
 
 """
@@ -193,15 +200,15 @@ plt.show()
 """
 # 模型评估(测试集)
 net.eval() 
-vals = [] #记录准确率所用列表
+vals = [] # 记录准确率所用列表
 
 with torch.no_grad():
-    for data,target in test_loader:        
+    for data,label in test_loader:        
         output = net(data)        
-        val = accuracy(output,target)
+        val = accuracy(output,label)
         vals.append(val)
         
-#计算准确率
+# 计算准确率
 rights = (sum([tup[0] for tup in vals]), sum([tup[1] for tup in vals]))
 right_rate = 1.0 * rights[0].detach().numpy() / rights[1]
 
