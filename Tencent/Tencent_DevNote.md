@@ -1394,6 +1394,8 @@ https://www.jianshu.com/p/d2834abd6796
 
 ##### 加密解密
 
+AES和RSA对比：https://blog.csdn.net/weixin_44259720/article/details/110952842
+
 使用openssl加密全教程：https://blog.csdn.net/zyhse/article/details/108026800
 
 http://www.cxyzjd.com/article/yp18792574062/102845506
@@ -1456,14 +1458,14 @@ S = da*Hb = da (db G) = db *(da *G) = db*Hb
 1. native demo：已完成，主要需要降级C++
 2. android demo：已完成，主要需要使用jni设计java和c++的接口。同时进一步降级platform android目录下的cpp源码
 
+##### 依赖问题
 
+1. `brew install package`得到的第三方库需要在cmakelists里面`find_package`并且链接上
+2. 注意依赖顺序
 
 #### 待办问题
 
-1. JNI调用jstring的内存占用优化（🙆）
-2. ASE还是其他加密方式？
-3. Abseil?
-4. map到普通内存区域和ashmem哪个性能会好点
+1. 测试demo性能
 
 
 
