@@ -9,15 +9,15 @@ import matplotlib.pyplot as plt
 """
 
 # 超参数设置
-num_epochs = 3   
-num_classes = 10
+num_epochs = 30  
+num_classes = 100 
 batch_size = 50  
 image_size = 32 
-learning_rate = 0.001  
+learning_rate = 0.01 
 
 # 导入数据集，允许从互联网下载数据集以及预向量化
-train_dataset = torchvision.datasets.CIFAR10(root='../dataset',train=True,transform=torchvision.transforms.ToTensor(),download=True) 
-test_dataset = torchvision.datasets.CIFAR10(root='../dataset',train=False,transform=torchvision.transforms.ToTensor(),download=True)
+train_dataset = torchvision.datasets.CIFAR100(root='../dataset',train=True,transform=torchvision.transforms.ToTensor(),download=True) 
+test_dataset = torchvision.datasets.CIFAR100(root='../dataset',train=False,transform=torchvision.transforms.ToTensor(),download=True)
 
 # 装载训练集，随机划分训练批次
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,batch_size=batch_size,shuffle=True)
@@ -45,8 +45,8 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,batch_size=batch_
 """
 
 # 采用Resnet18架构，预训练参数由torchvision导入
-net = torchvision.models.resnet18(pretrained=True)
-net.fc = torch.nn.Linear(512,num_classes)
+net = torchvision.models.resnet18(pretrained=False)
+net.fc = torch.nn.Linear(512,num_classes) 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device : "+str(device))
 
@@ -153,7 +153,7 @@ plt.ylabel('Error rate(%)')
 plt.show()
 
 # 保存最佳模型参数
-torch.save(best_model_wts, "../model/resnet18-imagenet-cifar10.pth")
+torch.save(best_model_wts, "../pretrained/resnet18-cifar100-pretrained.pth")
 
 """
 

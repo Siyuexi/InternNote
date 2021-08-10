@@ -118,7 +118,7 @@ net = ConvNet()
 
 # Loss函数采用交叉熵，优化算法采用随机梯度下降
 criterion = nn.CrossEntropyLoss() 
-optimizer = torch.optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+optimizer = torch.optim.SGD(net.parameters(), lr=learning_rate, momentum=0.9)
 
 record = [] # 记录错误率
 weights = [] # 记录卷积核
