@@ -15,9 +15,15 @@ batch_size = 50
 image_size = 32 
 learning_rate = 0.01 
 
+# 定义图像转换
+transform = torchvision.transforms.Compose([
+    torchvision.transforms.Resize((224, 224)),  # 重置图片大小
+    torchvision.transforms.ToTensor(),  # 将图片转换为Tensor,归一化至[0,1]
+])
+
 # 导入数据集，允许从互联网下载数据集以及预向量化
-train_dataset = torchvision.datasets.CIFAR100(root='../dataset',train=True,transform=torchvision.transforms.ToTensor(),download=True) 
-test_dataset = torchvision.datasets.CIFAR100(root='../dataset',train=False,transform=torchvision.transforms.ToTensor(),download=True)
+train_dataset = torchvision.datasets.CIFAR100(root='../dataset',train=True,transform=transform,download=True) 
+test_dataset = torchvision.datasets.CIFAR100(root='../dataset',train=False,transform=transform,download=True)
 
 # 装载训练集，随机划分训练批次
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,batch_size=batch_size,shuffle=True)

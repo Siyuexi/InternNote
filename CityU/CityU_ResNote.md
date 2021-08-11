@@ -402,6 +402,8 @@ res18.fc = nn.Linear(numFit, numClass)
 >
 > 最后，请注意inception_v3的输入大小为(299,299），而所有其他模型都输入为(224,224）。
 
+图片transform预处理操作参考https://blog.csdn.net/theVicTory/article/details/109230519
+
 #### FT-max：
 
 仅仅是做multi-source的fine tuning罢了

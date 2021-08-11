@@ -15,9 +15,15 @@ batch_size = 50
 image_size = 32  
 learning_rate = 0.001
 
+# 定义图像转换
+transform = torchvision.transforms.Compose([
+    torchvision.transforms.Resize((224, 224)),  # 重置图片大小
+    torchvision.transforms.ToTensor(),  # 将图片转换为Tensor,归一化至[0,1]
+])
+
 # 导入数据集，允许从互联网下载数据集以及预向量化
-train_dataset = torchvision.datasets.CIFAR10(root='../dataset',train=True,transform=torchvision.transforms.ToTensor(),download=True) 
-test_dataset = torchvision.datasets.CIFAR10(root='../dataset',train=False,transform=torchvision.transforms.ToTensor(),download=True)
+train_dataset = torchvision.datasets.CIFAR10(root='../dataset',train=True,transform=transform,download=True) 
+test_dataset = torchvision.datasets.CIFAR10(root='../dataset',train=False,transform=transform,download=True)
 
 # 装载训练集，随机划分训练批次
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,batch_size=batch_size,shuffle=True)
@@ -45,10 +51,10 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,batch_size=batch_
 """
 
 # 采用Resnet18架构，预训练参数由torchvision导入
-net = torchvision.models.resnet18(pretrained=True)
-# net.fc = torch.nn.Linear(512,257) # 预训练模型fc输出257classes，需要重塑resnet的fc才能导入参数
-net.load_state_dict(torch.load('../pretrained/resnet20-cifar10-pretrained.pth')) 
-# net.fc = torch.nn.Linear(512,10)
+net = torchvision.models.resnet18(pretrained=False)
+net.fc = torch.nn.Linear(512,100) # 预训练模型fc输出100classes，需要重塑resnet的fc才能导入参数
+net.load_state_dict(torch.load('../pretrained/resnet18-cifar100-pretrained.pth')) 
+net.fc = torch.nn.Linear(512,num_classes)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device : "+str(device))
 
