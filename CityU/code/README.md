@@ -15,6 +15,7 @@
 head:代表Task：
 - FT:Fine-Tuning
 - PT:Pre-Train
+- Ensemble-xxx:按xxx方法集成
 - SS:Single-Source
 - MS:Multiple-Source
 - Template:编程模版

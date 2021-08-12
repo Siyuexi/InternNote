@@ -125,7 +125,7 @@ for epoch in range(num_epochs):
         output = torch.zeros(batch_size,num_classes).to(device)
         for i in range(batch_size):
             for j in range(num_classes):
-                output[i,j] = torch.max(output_1[i,j],output_2[i,j],output_3[i,j])
+                output[i,j] = torch.mean(output_1[i,j],output_2[i,j],output_3[i,j])
         loss = criterion(output, label) 
         
         # 优化权重
@@ -164,7 +164,7 @@ for epoch in range(num_epochs):
                 output = torch.zeros(batch_size,num_classes).to(device)
                 for i in range(batch_size):
                     for j in range(num_classes):
-                        output[i,j] = torch.max(output_1[i,j],output_2[i,j],output_3[i,j]) 
+                        output[i,j] = torch.mean(output_1[i,j],output_2[i,j],output_3[i,j]) 
 
                 # 记录精度计算所需数据，返回(正确样例数，总样本数)
                 accuracies = accuracy(output, label) 
@@ -226,7 +226,7 @@ with torch.no_grad():
         output = torch.zeros(batch_size,num_classes).to(device)
         for i in range(batch_size):
             for j in range(num_classes):
-                output[i,j] = torch.max(output_1[i,j],output_2[i,j],output_3[i,j])        
+                output[i,j] = torch.mean(output_1[i,j],output_2[i,j],output_3[i,j])        
         accuracies = accuracy(output,label)
         test_accuracy.append(accuracies)
         
