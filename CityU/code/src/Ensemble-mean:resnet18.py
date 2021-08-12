@@ -124,8 +124,11 @@ for epoch in range(num_epochs):
         output_3 = normalize(net_3(data),dim=1)
         output = torch.zeros(batch_size,num_classes).to(device)
         for i in range(batch_size):
-            for j in range(num_classes):
-                output[i,j] = torch.mean(output_1[i,j],output_2[i,j],output_3[i,j])
+            output_cat = torch.zeros(3,num_classes)
+            output_cat[0,:] = output_1[i,:]
+            output_cat[1,:] = output_2[i,:]
+            output_cat[2,:] = output_3[i,:]
+            output[i,:] = torch.mean(output_cat,dim=0) 
         loss = criterion(output, label) 
         
         # 优化权重
@@ -163,8 +166,11 @@ for epoch in range(num_epochs):
                 output_3 = normalize(net_3(data),dim=1)
                 output = torch.zeros(batch_size,num_classes).to(device)
                 for i in range(batch_size):
-                    for j in range(num_classes):
-                        output[i,j] = torch.mean(output_1[i,j],output_2[i,j],output_3[i,j]) 
+                    output_cat = torch.zeros(3,num_classes)
+                    output_cat[0,:] = output_1[i,:]
+                    output_cat[1,:] = output_2[i,:]
+                    output_cat[2,:] = output_3[i,:]
+                    output[i,:] = torch.mean(output_cat,dim=0) 
 
                 # 记录精度计算所需数据，返回(正确样例数，总样本数)
                 accuracies = accuracy(output, label) 
@@ -201,9 +207,9 @@ plt.ylabel('Error rate(%)')
 plt.show()
 
 # 保存最佳模型参数
-torch.save(best_model_wts_1, "../model/ensemble-max-1.pth")
-torch.save(best_model_wts_2, "../model/ensemble-max-2.pth")
-torch.save(best_model_wts_3, "../model/ensemble-max-3.pth")
+torch.save(best_model_wts_1, "../model/ensemble-mean-1.pth")
+torch.save(best_model_wts_2, "../model/ensemble-mean-2.pth")
+torch.save(best_model_wts_3, "../model/ensemble-mean-3.pth")
 
 """
 
@@ -225,8 +231,11 @@ with torch.no_grad():
         output_3 = normalize(net_3(data),dim=1)
         output = torch.zeros(batch_size,num_classes).to(device)
         for i in range(batch_size):
-            for j in range(num_classes):
-                output[i,j] = torch.mean(output_1[i,j],output_2[i,j],output_3[i,j])        
+            output_cat = torch.zeros(3,num_classes)
+            output_cat[0,:] = output_1[i,:]
+            output_cat[1,:] = output_2[i,:]
+            output_cat[2,:] = output_3[i,:]
+            output[i,:] = torch.mean(output_cat,dim=0)        
         accuracies = accuracy(output,label)
         test_accuracy.append(accuracies)
         
