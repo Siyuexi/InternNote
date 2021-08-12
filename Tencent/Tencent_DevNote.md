@@ -832,11 +832,11 @@ $ ldd main
 
 
 
-### 4. CMake
+### 4. C++
 
 cmake命令不区分大小写
 
-#### CMakeLIst.txt
+#### CMakeList.txt
 
 **必备**设置最小版本号与项目名
 
@@ -899,9 +899,30 @@ target_link_libraries(target lib1 lib2)
 
 
 
-#### .cmake
+#### operator
 
+Operator用于C++的运算符重载，同时也可用于隐式类型转换`operator param() {}`，看下面这个例
 
+```cpp
+#include <iostream>
+template<typename _T>
+class A {
+public:
+	A(_T a) : data(a) {}
+	operator _T () { return data; }
+private:
+	_T data;
+};
+
+int main() {
+	A<int> obj(2);
+	obj = obj + 1;
+	std::cout << obj << std::endl;
+	return 0;
+}
+```
+
+程序输出为3，因为obj = obj + 1将调用运算符重载，将obj的data成员返回。
 
 
 

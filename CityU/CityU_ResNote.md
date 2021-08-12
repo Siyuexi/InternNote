@@ -158,7 +158,21 @@ c_j=\sum^T_{i=1}\alpha_{ij}h_i
 $$
 其中，$\alpha$是权重矩阵中的注意力权重值，可以通过反向传播更新；$h_i$是每个单元的状态。
 
+其中$\alpha$的计算方式如下：
+
+![attention1](res/attention1.png)
+
+![attention2](res/attention2.png)
+
+self-attention：
+
+假设当前已经在计算向量$h_k$的注意力$c_k$了，那么对于$h_k$,前面k个向量的权重$\alpha_i=align(h_i,h_k)$,由此一步步往前推，得到所有向量的注意力c
+
+![self-attention](res/self-attention.png)
+
 可以见得，引入了注意力机制之后，模型的全局信息都被按权相加被浓缩在注意力值之中。这对于NLP领域的这两大拥有编解码器的模型而言，无疑是凸显重要信息的手段。因为注意力机制能更好的凸显关键信息，因此CV领域也逐渐引入视觉注意力。
+
+
 
 
 
