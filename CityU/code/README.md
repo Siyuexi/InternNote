@@ -16,6 +16,8 @@ head:代表Task：
 - FT:Fine-Tuning
 - PT:Pre-Train
 - Ensemble-xxx:按xxx方法集成
+- Attention-xxx:按xxx方法做注意力机制
+- SA-xxx:按xxx的方法做自注意力
 - SS:Single-Source
 - MS:Multiple-Source
 - Template:编程模版

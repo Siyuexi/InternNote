@@ -164,11 +164,27 @@ $$
 
 ![attention2](res/attention2.png)
 
+transformer里面的attention：
+
+![trans-attention1](res/trans-attention1.png)
+
+![trans-attention2](res/trans-attention2.png)
+
 self-attention：
 
 假设当前已经在计算向量$h_k$的注意力$c_k$了，那么对于$h_k$,前面k个向量的权重$\alpha_i=align(h_i,h_k)$,由此一步步往前推，得到所有向量的注意力c
 
 ![self-attention](res/self-attention.png)
+
+![self-attention2](res/self-attention2.jpg)
+
+self-attention用来寻找内部关联性
+
+Self-attention，transformer版：
+
+![self-trans-attention1](res/self-trans-attention1.png)
+
+![self-trans-attention2](res/self-trans-attention2.png)
 
 可以见得，引入了注意力机制之后，模型的全局信息都被按权相加被浓缩在注意力值之中。这对于NLP领域的这两大拥有编解码器的模型而言，无疑是凸显重要信息的手段。因为注意力机制能更好的凸显关键信息，因此CV领域也逐渐引入视觉注意力。
 
@@ -418,15 +434,23 @@ res18.fc = nn.Linear(numFit, numClass)
 
 图片transform预处理操作参考https://blog.csdn.net/theVicTory/article/details/109230519
 
-#### FT-max：
+#### FT：
 
 仅仅是做multi-source的fine tuning罢了
 
-#### FT-esembel：
+取三个模型的最大准确率为最终准确率
 
-#### w/o-attention：
+#### Ensemble：
 
-#### self-attention：
+做output的集成，用一些比较简单的方法
+
+在每一个分类的维度上，取三个模型的output的最大置信度（或者均值），作为该分类的置信度（0～1之间）
+
+最后输出output里面，每个分类的维度都是三个模型认为的最大置信度值（或者均值）。
+
+#### Attention：
+
+使用注意力机制对Multi-Source的输出做加权，然后再通过全链接层做分类。
 
 #### KDE（paper）：
 
