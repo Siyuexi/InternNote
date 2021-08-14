@@ -70,7 +70,6 @@ class Attention(torch.nn.Module):
         x_1 = x[0,:].to(device)
         x_2 = x[1,:].to(device)
         x_3 = x[2,:].to(device)
-        h_0 = torch.zeros(self.h_dim).to(device)
 
         # 求key
         k_1 = self.key(x_1)
