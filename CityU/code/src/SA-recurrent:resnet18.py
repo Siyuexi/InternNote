@@ -11,7 +11,7 @@ from torch.nn.functional import normalize
 """
 
 # 超参数设置
-num_epochs = 3   
+num_epochs = 15   
 num_classes = 10
 batch_size = 50  
 image_size = 32 
