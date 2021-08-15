@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 """
 
 # 超参数设置
-num_epochs = 30  
+num_epochs = 3 # 取小一点，防止过拟合
 num_classes = 100 
 batch_size = 50  
 image_size = 32 
-learning_rate = 0.01 
+learning_rate = 0.001 
 
 # 定义图像转换
 transform = torchvision.transforms.Compose([
@@ -51,7 +51,11 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,batch_size=batch_
 """
 
 # 采用Resnet18架构，预训练参数由torchvision导入
-net = torchvision.models.resnet18(pretrained=False)
+""" 
+    由于设备有限，这里导入的resnet18含有预训练参数
+    若有条件的话，取消预训练参数导入，并把epoch改为30
+"""
+net = torchvision.models.resnet18(pretrained=True) 
 net.fc = torch.nn.Linear(512,num_classes) 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device : "+str(device))
