@@ -142,7 +142,7 @@ for epoch in range(num_epochs):
             train_acc_r = 100. * train_r[0] / train_r[1]
             val_acc_r = 100. * val_r[0] / val_r[1]
             print('Epoch [{}/{}]\tBatch [{}/{}]\tSample [{}/{}]\tLoss: {:.6f}\tTrainAccuracy: {:.2f}%\tValidationAccuracy: {:.2f}%'.format(
-                epoch+1,num_epochs,min(batch_id+100,epoch_size//batch_size),epoch_size//batch_size ,(batch_id+100) * batch_size, epoch_size,
+                epoch+1,num_epochs,min(batch_id+100,epoch_size//batch_size),epoch_size//batch_size ,min((batch_id+100) * batch_size,epoch_size), epoch_size,
                 loss.item(), 
                 train_acc_r, 
                 val_acc_r))
