@@ -1,6 +1,8 @@
+import sys
 import torch
 import torchvision # MINST数据集由torchvision提供  
 import matplotlib.pyplot as plt
+sys.stdout = open('../log/PT:resnet18-cifar10-log.txt','wt')
 
 """
 

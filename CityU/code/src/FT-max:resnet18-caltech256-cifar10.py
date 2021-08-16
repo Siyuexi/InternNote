@@ -1,7 +1,8 @@
+import sys
 import torch
 import torchvision # MINST数据集由torchvision提供  
 import matplotlib.pyplot as plt
-
+sys.stdout = open('../log/FT-max:resnet18-caltech256-cifar10-log.txt','wt')
 """
 
     Part.1 数据预处理
