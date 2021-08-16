@@ -17,7 +17,7 @@ num_epochs = 15
 num_classes = 10
 batch_size = 50  
 image_size = 32 
-learning_rate = 0.001  
+learning_rate = 0.01  
 
 # 定义图像转换
 transform = torchvision.transforms.Compose([
