@@ -31,6 +31,7 @@ test_dataset = torchvision.datasets.CIFAR10(root='../dataset',train=False,transf
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,batch_size=batch_size,shuffle=True)
 epoch_size =  len(train_loader.dataset)
 print('shape of train set:',epoch_size,file=log,flush=True)
+print('shape of train set:',epoch_size,file=sys.stdout)
 
 # 测试集index前5000的是验证集，index后5000的是测试集
 indices = range(len(test_dataset))
@@ -57,6 +58,7 @@ net = torchvision.models.resnet18(pretrained=True)
 net.fc = torch.nn.Linear(512,num_classes)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device : "+str(device),file=log,flush=True)
+print("device : "+str(device),file=sys.stdout)
 
 def accuracy(predictions, labels):
     # 统计正确个数，而非正确率 含有_r或_rate的才是百分数
@@ -141,11 +143,13 @@ for epoch in range(num_epochs):
             # 打印准确率：本训练周期Epoch开始后到目前batch的正确率的平均值
             train_acc_r = 100. * train_r[0] / train_r[1]
             val_acc_r = 100. * val_r[0] / val_r[1]
-            print('Epoch [{}/{}]\tBatch [{}/{}]\tSample [{}/{}]\tLoss: {:.6f}\tTrainAccuracy: {:.2f}%\tValidationAccuracy: {:.2f}%'.format(
+            checkpoint = 'Epoch [{}/{}]\tBatch [{}/{}]\tSample [{}/{}]\tLoss: {:.6f}\tTrainAccuracy: {:.2f}%\tValidationAccuracy: {:.2f}%'.format(
                 epoch+1,num_epochs,min(batch_id+100,epoch_size//batch_size),epoch_size//batch_size ,min((batch_id+100) * batch_size,epoch_size), epoch_size,
                 loss.item(), 
                 train_acc_r, 
-                val_acc_r),file=log,flush=True)
+                val_acc_r)
+            print(checkpoint,file=log,flush=True)
+            print(checkpoint,file=sys.stdout)
             if(val_acc_r > best_acc_r):
                 best_acc_r = val_acc_r
                 best_model_wts = net.state_dict()
@@ -185,3 +189,4 @@ rights = (sum([tup[0] for tup in test_accuracy]), sum([tup[1] for tup in test_ac
 right_rate = 1.0 * rights[0].detach().to('cpu').numpy() / rights[1]
 
 print("TestAccuracy: ",right_rate,file=log,flush=True)
+print("TestAccuracy: ",right_rate,file=sys.stdout)
