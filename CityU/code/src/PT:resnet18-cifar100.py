@@ -2,7 +2,7 @@ import sys
 import torch
 import torchvision # MINST数据集由torchvision提供  
 import matplotlib.pyplot as plt
-sys.stdout = open('../log/PT:resnet18-cifar10-log.txt','wt')
+log = open('../log/PT:resnet18-cifar10-log.txt','wt')
 
 """
 
@@ -30,7 +30,7 @@ test_dataset = torchvision.datasets.CIFAR100(root='../dataset',train=False,trans
 # 装载训练集，随机划分训练批次
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,batch_size=batch_size,shuffle=True)
 epoch_size =  len(train_loader.dataset)
-print('shape of train set:',epoch_size)
+print('shape of train set:',epoch_size,file=log,flush=True)
 
 # 测试集index前5000的是验证集，index后5000的是测试集
 indices = range(len(test_dataset))
@@ -60,7 +60,7 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,batch_size=batch_
 net = torchvision.models.resnet18(pretrained=True) 
 net.fc = torch.nn.Linear(512,num_classes) 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("device : "+str(device))
+print("device : "+str(device),file=log,flush=True)
 
 def accuracy(predictions, labels):
     # 统计正确个数，而非正确率 含有_r或_rate的才是百分数
@@ -149,7 +149,7 @@ for epoch in range(num_epochs):
                 epoch+1,num_epochs,min(batch_id+100,epoch_size//batch_size),epoch_size//batch_size ,min((batch_id+100) * batch_size,epoch_size), epoch_size,
                 loss.item(), 
                 train_acc_r, 
-                val_acc_r))
+                val_acc_r),file=log,flush=True)
             if(val_acc_r > best_acc_r):
                 best_acc_r = val_acc_r
                 best_model_wts = net.state_dict()
@@ -188,4 +188,4 @@ with torch.no_grad():
 rights = (sum([tup[0] for tup in test_accuracy]), sum([tup[1] for tup in test_accuracy]))
 right_rate = 1.0 * rights[0].detach().to('cpu').numpy() / rights[1]
 
-print("TestAccuracy: ",right_rate)
+print("TestAccuracy: ",right_rate,file=log,flush=True)
