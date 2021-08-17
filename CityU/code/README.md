@@ -16,14 +16,14 @@
 # 3.命名规则
 ## 3.1 head:
 head:代表Task：
-- FT:Fine-Tuning
-- PT:Pre-Train
-- Ensemble-xxx:按xxx方法集成
-- Attention-xxx:按xxx方法做注意力机制
-- SA-xxx:按xxx的方法做自注意力
-- SS:Single-Source
-- MS:Multiple-Source
-- Template:编程模版
-- terminal:如果用Google Colab，那么把该脚本放入谷歌云盘的Colab Notebook文件下，并按顺序执行
+- FT=Fine-Tuning
+- PT=Pre-Train
+- Ensemble-xxx=按xxx方法集成
+- Attention-xxx=按xxx方法做注意力机制
+- SA-xxx=按xxx的方法做自注意力
+- SS=Single-Source
+- MS=Multiple-Source
+- Template=编程模版
+- terminal=如果用Google Colab，那么把该脚本放入谷歌云盘的Colab Notebook文件下，并按顺序执行
 ## 3.2 net-source-target
 net-source-target代表网络结构、源域和目标域

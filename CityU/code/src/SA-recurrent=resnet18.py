@@ -4,7 +4,7 @@ from torch.nn import parameter
 import torchvision # MINST数据集由torchvision提供  
 import matplotlib.pyplot as plt
 from torch.nn.functional import normalize
-log = open('../log/SA-recurrent:resnet18-log.txt','wt')
+log = open('../log/SA-recurrent=resnet18-log.txt','wt')
 
 """
 

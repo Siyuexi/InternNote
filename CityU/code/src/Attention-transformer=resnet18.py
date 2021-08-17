@@ -1,9 +1,10 @@
 import sys
 import torch
+from torch.nn import parameter
 import torchvision # MINST数据集由torchvision提供  
 import matplotlib.pyplot as plt
 from torch.nn.functional import normalize
-log = open('../log/Ensemble-mean:resnet18-log.txt','wt')
+log = open('../log/Attention-transformer=resnet18-log.txt','wt')
 
 """
 
@@ -16,7 +17,7 @@ num_epochs = 5
 num_classes = 10
 batch_size = 50  
 image_size = 32 
-learning_rate = 0.005  
+learning_rate = 0.01  
 
 # 定义图像转换
 transform = torchvision.transforms.Compose([
@@ -54,21 +55,71 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset,batch_size=batch_
 
 """
 
+# 设计Attention部分 是基于RNN的self-attention
+class Attention(torch.nn.Module):
+    
+    def __init__(self): 
+        super().__init__() # 初始化module父类
+
+        self.x_dim = 512 # 即输入特征x的维度
+        self.p_dim = 32 # 参数矩阵的转换维度
+        self.key = torch.nn.Linear(self.x_dim,self.p_dim,bias=False) # 映射生成key的层
+        self.value = torch.nn.Linear(self.x_dim,self.p_dim,bias=False) # 映射生成value的层
+        self.query = torch.nn.Linear(self.x_dim*3,self.p_dim,bias=False) # 映射生成query的层
+        self.fc = torch.nn.Linear(self.p_dim,num_classes) # 最终分类的全链接层 由最终注意力输出分类
+
+    def forward(self, x):
+        # 输入的x分三个部分
+        x_1 = x[0,:].to(device)
+        x_2 = x[1,:].to(device)
+        x_3 = x[2,:].to(device)
+
+        # 求key
+        k_1 = self.key(x_1)
+        k_2 = self.key(x_2)
+        k_3 = self.key(x_3)
+
+        # 求value
+        v_1 = self.value(x_1)
+        v_2 = self.value(x_2)
+        v_3 = self.value(x_3)
+
+        # 求query
+        y = torch.cat((x_1,x_2,x_3)) # 假设目标y是前三者的cat
+        q = self.query(y)
+
+        # 求系数a
+        a_1 = q.dot(k_1)
+        a_2 = q.dot(k_2)
+        a_3 = q.dot(k_3)
+        a_cat = torch.tensor([a_1,a_2,a_3])
+        a_1,a_2,a_3 = torch.softmax(a_cat,dim=0)
+
+        # 求注意力c
+        c = a_1*v_1+a_2*v_2+a_3*v_3
+
+        # 分类的全链接层
+        output = self.fc(c)
+
+        return output
+
+attention = Attention()
+
 # 来自imagenet的预训练网络
 net_1 = torchvision.models.resnet18(pretrained=True)
-net_1.fc = torch.nn.Linear(512,num_classes)
+net_1.fc = torch.nn.Sequential()
 
 # 来自caltech256的预训练网络
 net_2 = torchvision.models.resnet18(pretrained=False)
 net_2.fc = torch.nn.Linear(512,257) # 预训练模型fc输出257classes，需要重塑resnet的fc才能导入参数
 net_2.load_state_dict(torch.load('../pretrained/resnet18-caltech256-pretrained.pth')) 
-net_2.fc = torch.nn.Linear(512,num_classes)
+net_2.fc = torch.nn.Sequential()
 
 # 来自cifar100的预训练网络
 net_3 = torchvision.models.resnet18(pretrained=False)
 net_3.fc = torch.nn.Linear(512,100) # 预训练模型fc输出100classes，需要重塑resnet的fc才能导入参数
 net_3.load_state_dict(torch.load('../pretrained/resnet18-cifar100-pretrained.pth')) 
-net_3.fc = torch.nn.Linear(512,num_classes)
+net_3.fc = torch.nn.Sequential()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("device : "+str(device),file=log,flush=True)
@@ -90,15 +141,19 @@ def accuracy(predictions, labels):
 net_1 = net_1.to(device)
 net_2 = net_2.to(device)
 net_3 = net_3.to(device)
+attention = attention.to(device)
+
 best_model_wts_1 = net_1.state_dict()
 best_model_wts_2 = net_2.state_dict()
 best_model_wts_3 = net_3.state_dict()
+best_model_wts_attention = attention.state_dict()
 
 # Loss函数采用交叉熵，优化算法采用随机梯度下降
 criterion = torch.nn.CrossEntropyLoss() 
 optimizer_1 = torch.optim.SGD(net_1.parameters(), lr=learning_rate, momentum=0.9)
 optimizer_2 = torch.optim.SGD(net_2.parameters(), lr=learning_rate, momentum=0.9)
 optimizer_3 = torch.optim.SGD(net_3.parameters(), lr=learning_rate, momentum=0.9)
+optimizer_attention = torch.optim.SGD(attention.parameters(), lr=learning_rate, momentum=0.9)
 
 record_err = [] # 错误记录
 best_acc_r = 1 # 记录最佳正确率
@@ -128,21 +183,23 @@ for epoch in range(num_epochs):
         output_3 = normalize(net_3(data),dim=1)
         output = torch.zeros(batch_size,num_classes).to(device)
         for i in range(batch_size):
-            output_cat = torch.zeros(3,num_classes)
+            output_cat = torch.zeros(3,512)
             output_cat[0,:] = output_1[i,:]
             output_cat[1,:] = output_2[i,:]
             output_cat[2,:] = output_3[i,:]
-            output[i,:] = torch.mean(output_cat,dim=0) 
+            output[i,:] = attention(output_cat)
         loss = criterion(output, label) 
         
         # 优化权重
         optimizer_1.zero_grad()
         optimizer_2.zero_grad()
         optimizer_3.zero_grad()
+        optimizer_attention.zero_grad()
         loss.backward()
         optimizer_1.step()
         optimizer_2.step()
         optimizer_3.step()
+        optimizer_attention.step()
         
         # 计算精度
         accuracies = accuracy(output, label)
@@ -170,11 +227,11 @@ for epoch in range(num_epochs):
                 output_3 = normalize(net_3(data),dim=1)
                 output = torch.zeros(batch_size,num_classes).to(device)
                 for i in range(batch_size):
-                    output_cat = torch.zeros(3,num_classes)
+                    output_cat = torch.zeros(3,512)
                     output_cat[0,:] = output_1[i,:]
                     output_cat[1,:] = output_2[i,:]
                     output_cat[2,:] = output_3[i,:]
-                    output[i,:] = torch.mean(output_cat,dim=0) 
+                    output[i,:] = attention(output_cat)
 
                 # 记录精度计算所需数据，返回(正确样例数，总样本数)
                 accuracies = accuracy(output, label) 
@@ -201,6 +258,7 @@ for epoch in range(num_epochs):
                 best_model_wts_1 = net_1.state_dict()
                 best_model_wts_2 = net_2.state_dict()
                 best_model_wts_3 = net_3.state_dict()
+                best_model_wts_attention = attention.state_dict()
             # 记录错误率
             record_err.append((100 - train_acc_r, 100 - val_acc_r))
 
@@ -213,9 +271,10 @@ plt.ylabel('Error rate(%)')
 plt.show()
 
 # 保存最佳模型参数
-torch.save(best_model_wts_1, "../model/ensemble-mean-1.pth")
-torch.save(best_model_wts_2, "../model/ensemble-mean-2.pth")
-torch.save(best_model_wts_3, "../model/ensemble-mean-3.pth")
+torch.save(best_model_wts_1, "../model/attention-transformer-1.pth")
+torch.save(best_model_wts_2, "../model/attention-transformer-2.pth")
+torch.save(best_model_wts_3, "../model/attention-transformer-3.pth")
+torch.save(best_model_wts_attention, "../model/attention-transformer-attention.pth")
 
 """
 
@@ -237,11 +296,11 @@ with torch.no_grad():
         output_3 = normalize(net_3(data),dim=1)
         output = torch.zeros(batch_size,num_classes).to(device)
         for i in range(batch_size):
-            output_cat = torch.zeros(3,num_classes)
+            output_cat = torch.zeros(3,512)
             output_cat[0,:] = output_1[i,:]
             output_cat[1,:] = output_2[i,:]
             output_cat[2,:] = output_3[i,:]
-            output[i,:] = torch.mean(output_cat,dim=0)        
+            output[i,:] = attention(output_cat)     
         accuracies = accuracy(output,label)
         test_accuracy.append(accuracies)
         
