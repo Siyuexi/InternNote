@@ -453,7 +453,7 @@ KDE即**核密度估计**
 |     FT-Caltech256     |  0.9466  |
 |      FT-Cifar100      |  0.9484  |
 |     Ensemble-max      |  0.9530  |
-|     Ensemble-mean     |  0.9620  |
+|     Ensemble-mean     |  0.9572  |
 |     Attention-RNN     |          |
 | Attention-Transformer |          |
 |    Self-Attention     |          |
