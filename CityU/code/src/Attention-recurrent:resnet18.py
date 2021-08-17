@@ -13,7 +13,7 @@ log = open('../log/Attention-recurrent:resnet18-log.txt','wt')
 """
 
 # 超参数设置
-num_epochs = 15   
+num_epochs = 5   
 num_classes = 10
 batch_size = 50  
 image_size = 32 
@@ -86,7 +86,8 @@ class Attention(torch.nn.Module):
         a_1 = self.v(torch.tanh(self.attention(torch.cat((h_1,h_3)))))
         a_2 = self.v(torch.tanh(self.attention(torch.cat((h_2,h_3)))))
         a_3 = self.v(torch.tanh(self.attention(torch.cat((h_3,h_3)))))
-        a_1,a_2,a_3 = torch.softmax(torch.cat((a_1,a_2,a_3)),dim=0)
+        a_cat = torch.tensor([a_1,a_2,a_3])
+        a_1,a_2,a_3 = torch.softmax(a_cat,dim=0)
         c = a_1*h_1+a_2*h_2+a_3*h_3
 
         # 分类的全链接层

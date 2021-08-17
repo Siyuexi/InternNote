@@ -13,7 +13,7 @@ log = open('../log/Attention-transformer:resnet18-log.txt','wt')
 """
 
 # 超参数设置
-num_epochs = 15   
+num_epochs = 5   
 num_classes = 10
 batch_size = 50  
 image_size = 32 
@@ -66,7 +66,7 @@ class Attention(torch.nn.Module):
         self.key = torch.nn.Linear(self.x_dim,self.p_dim,bias=False) # 映射生成key的层
         self.value = torch.nn.Linear(self.x_dim,self.p_dim,bias=False) # 映射生成value的层
         self.query = torch.nn.Linear(self.x_dim*3,self.p_dim,bias=False) # 映射生成query的层
-        self.fc = torch.nn.Linear(self.h_dim,num_classes) # 最终分类的全链接层 由最终注意力输出分类
+        self.fc = torch.nn.Linear(self.p_dim,num_classes) # 最终分类的全链接层 由最终注意力输出分类
 
     def forward(self, x):
         # 输入的x分三个部分
@@ -89,10 +89,11 @@ class Attention(torch.nn.Module):
         q = self.query(y)
 
         # 求系数a
-        a_1 = k_1.reshape(-1,1)*q
-        a_2 = k_2.reshape(-1,1)*q
-        a_3 = k_3.reshape(-1,1)*q
-        a_1,a_2,a_3 = torch.softmax(torch.cat((a_1,a_2,a_3)),dim=0)
+        a_1 = q.dot(k_1)
+        a_2 = q.dot(k_2)
+        a_3 = q.dot(k_3)
+        a_cat = torch.tensor([a_1,a_2,a_3])
+        a_1,a_2,a_3 = torch.softmax(a_cat,dim=0)
 
         # 求注意力c
         c = a_1*v_1+a_2*v_2+a_3*v_3

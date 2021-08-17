@@ -13,11 +13,11 @@ log = open('../log/SA-recurrent:resnet18-log.txt','wt')
 """
 
 # 超参数设置
-num_epochs = 15   
+num_epochs = 5   
 num_classes = 10
 batch_size = 50  
 image_size = 32 
-learning_rate = 0.005  
+learning_rate = 0.01  
 
 # 定义图像转换
 transform = torchvision.transforms.Compose([
