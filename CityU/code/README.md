@@ -27,3 +27,15 @@ head:代表Task：
 - terminal=如果用Google Colab，那么把该脚本放入谷歌云盘的Colab Notebook文件下，并按顺序执行
 ## 3.2 net-source-target
 net-source-target代表网络结构、源域和目标域
+# 4. 远程连接
+## 4.1 在本地使用ssh生成密钥
+也可以直接用git remote的ssh密钥
+## 4.2 测试在命令行下使用ssh访问远程主机
+## 4.3 在本地映射服务器的磁盘映像：
+以下三种方法中，更推荐第一种，方便，也安全
+    - 可以使用sshfs(for mac/for win)，在本地创建映像
+    - 可以使用samba协议（需要服务器开启samba端口）
+    - 可以使用WinSCP等软件访问远程磁盘
+## 4.4 将ssh公钥上传服务器进行authorize
+## 4.5 配置vscode ssh-remote环境
+这样就不用每次都输入远程主机的密码了

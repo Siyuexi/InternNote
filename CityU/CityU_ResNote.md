@@ -455,8 +455,8 @@ KDE即**核密度估计**
 |     Ensemble-max      |  0.9530  |
 |     Ensemble-mean     |  0.9572  |
 |     Attention-RNN     |          |
-| Attention-Transformer |          |
-|    Self-Attention     |          |
+| Attention-Transformer |  0.9496  |
+|    Self-Attention     |  0.9478  |
 |          KDE          |          |
 
 

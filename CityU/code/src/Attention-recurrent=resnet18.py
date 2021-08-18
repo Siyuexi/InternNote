@@ -13,7 +13,7 @@ log = open('../log/Attention-recurrent=resnet18-log.txt','wt')
 """
 
 # 超参数设置
-num_epochs = 5   
+num_epochs = 10   
 num_classes = 10
 batch_size = 50  
 image_size = 32 
