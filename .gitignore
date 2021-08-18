@@ -1,6 +1,10 @@
 # IDE config
 .vscode
 
+# os
+._*
+.DS_Store
+
 # generated
 CityU/code/feature
 CityU/code/model
