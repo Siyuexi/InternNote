@@ -447,17 +447,17 @@ KDE即**核密度估计**
 
 **Target:**Cifar10
 
-|        Method         | Accuracy |
-| :-------------------: | :------: |
-|      FT-ImageNet      |  0.9506  |
-|     FT-Caltech256     |  0.9466  |
-|      FT-Cifar100      |  0.9484  |
-|     Ensemble-max      |  0.9530  |
-|     Ensemble-mean     |  0.9572  |
-|     Attention-RNN     |          |
-| Attention-Transformer |  0.9496  |
-|    Self-Attention     |  0.9478  |
-|          KDE          |          |
+|        Method         | Validation |  Test  |
+| :-------------------: | :--------: | :----: |
+|      FT-ImageNet      |   0.9506   | 0.9412 |
+|     FT-Caltech256     |   0.9514   | 0.9484 |
+|      FT-Cifar100      |   0.9512   | 0.9506 |
+|     Ensemble-max      |   0.9552   | 0.9518 |
+|     Ensemble-mean     |   0.9620   | 0.9572 |
+|     Attention-RNN     |   0.9462   | 0.9302 |
+| Attention-Transformer |   0.9496   | 0.9428 |
+|    Self-Attention     |   0.9478   | 0.9408 |
+|          KDE          |            |        |
 
 
 
