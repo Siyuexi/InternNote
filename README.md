@@ -10,7 +10,7 @@
   - gestaltxu@tencent.com
   - xujunjielong@bytedance.com
   
-- ![pic2](/Users/bytedance/Documents/github/InternNote/Pics/pic2.jpg)
+- ![pic2](./Pics/pic2.jpg)
 
 
 
