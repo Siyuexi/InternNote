@@ -9,29 +9,32 @@
   - siyuexi@hust.edu.cn
   - gestaltxu@tencent.com
   - xujunjielong@bytedance.com
+  
+- ![pic2](/Users/bytedance/Documents/github/InternNote/Pics/pic2.jpg)
+
+
 
 ## Tencent
 
-腾讯互娱——游戏知己项目组
+游戏知己项目组
 
 ## ByteDance
 
-字节抖音——抖音直播项目组
+智能创作项目组
 
 ## CtiyU
 
-AAAI——迁移学习/元学习
+迁移学习&元学习
 
 ## 考研
-也许还会考验试试，当个气氛组好了
+
+气氛组
 
 ## 申请
-这个完全随缘，已经佛了
+
+气氛组
 
 ## 内推码
 
-用自己的内推码可真是够奇葩的
-
-![海报-1](Tencent/res/海报-1.jpg)
-
-![海报-3](ByteDance/res/海报-3.jpg)
+仅限2021秋招
+在Pics目录下
