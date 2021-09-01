@@ -458,6 +458,8 @@ KDE即**核密度估计**
 | Attention-Transformer |   0.9496   | 0.9428 |
 |    Self-Attention     |   0.9478   | 0.9408 |
 |          KDE          |            |        |
+|        MS-SVM         |            | 0.9297 |
+|         MS-FC         |            | 0.9253 |
 
 
 

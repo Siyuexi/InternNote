@@ -1,5 +1,8 @@
 # 1.使用ide打开源码时，请确保切换路径到/src目录下！
 # 2.目录结构：
+
+值得注意的是：如果先前有保存好的feature或者model，那么可以**更改代码中的注释项**——直接从目录中加载，而不用重新提取feature或者训练model
+
 ## 2.1 dataset
 一些torchvision上没有的、从互联网上收集来的原始数据集(.gitignore)
 ## 2.2 feature
